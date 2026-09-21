@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Trading Journal</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b0d10;color:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.app{max-width:560px;margin:auto;min-height:100vh;padding:18px 16px 92px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+h1{font-size:24px;margin:0}.muted{color:#8f98a3;font-size:13px}.card{background:#15191e;border:1px solid #242a31;border-radius:18px;padding:16px;margin:10px 0}
+.balance{font-size:32px;font-weight:750;margin:7px 0}.pnl{font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat b{display:block;font-size:20px;margin-top:5px}
+button,input,select{font:inherit}button{border:0;border-radius:13px;padding:13px 15px;cursor:pointer}
+.primary{background:#fff;color:#111;font-weight:700;width:100%}.buy{background:#183d29;color:#75e0a1}.sell{background:#451d24;color:#ff8f9b}.side{display:flex;gap:8px}.side button{flex:1}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#101317;border-top:1px solid #242a31;display:flex;justify-content:center;z-index:5}
+.nav button{background:none;color:#9ca5af;border-radius:0;flex:1;max-width:140px;font-size:12px}.nav .active{color:#fff}
+input,select{width:100%;background:#0f1216;color:#fff;border:1px solid #2a3038;border-radius:12px;padding:12px;margin-top:6px}
+label{display:block;margin:12px 0;color:#aab2bd;font-size:13px}.hidden{display:none}.trade{display:flex;justify-content:space-between;gap:10px;align-items:center}.tag{padding:5px 8px;border-radius:8px;font-size:12px}.win{background:#183d29;color:#75e0a1}.loss{background:#451d24;color:#ff8f9b}
+h2{font-size:18px;margin:18px 0 8px}.empty{text-align:center;color:#8f98a3;padding:30px 10px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top"><div><div class="muted">TRADING JOURNAL</div><h1 id="title">Главная</h1></div><button onclick="settings()">⚙️</button></div>
+
+  <section id="home">
+    <div class="card"><div class="muted">Баланс</div><div class="balance" id="balance">$0.00</div><div class="pnl" id="pnl">P&L: $0.00</div></div>
+    <div class="grid">
+      <div class="card stat"><div class="muted">Сделки</div><b id="count">0</b></div>
+      <div class="card stat"><div class="muted">Profit Factor</div><b id="pf">—</b></div>
+    </div>
+    <button class="primary" onclick="show('add')">➕ Добавить сделку</button>
+    <div class="card"><div class="muted">Последняя серия</div><b id="streak">—</b></div>
+  </section>
+
+  <section id="add" class="hidden">
+    <div class="card">
+      <label>Валютная пара<input id="pair" placeholder="EURUSD"></label>
+      <label>Направление<div class="side"><button id="buy" class="buy" onclick="side='BUY';pickSide()">🟢 BUY</button><button id="sell" class="sell" onclick="side='SELL';pickSide()">🔴 SELL</button></div></label>
+      <label>Сумма<input id="amount" type="number" step="0.01" placeholder="10"></label>
+      <label>Экспирация<input id="expiry" placeholder="2 мин"></label>
+      <label>Таймфрейм<select id="tf"><option>M1</option><option>M2</option><option>M3</option><option>M5</option></select></label>
+      <label>Стратегия<input id="strategy" placeholder="Например FOREX CORE"></label>
+      <label>Результат<select id="result"><option>WIN</option><option>LOSS</option></select></label>
+      <button class="primary" onclick="saveTrade()">Сохранить сделку</button>
+    </div>
+  </section>
+
+  <section id="journal" class="hidden"><div id="trades"></div></section>
+
+  <section id="stats" class="hidden">
+    <div class="grid">
+      <div class="card stat"><div class="muted">WIN</div><b id="wins">0</b></div>
+      <div class="card stat"><div class="muted">LOSS</div><b id="losses">0</b></div>
+    </div>
+    <div class="card"><div class="muted">Profit Factor</div><b id="pf2">—</b></div>
+  </section>
+</div>
+<div class="nav">
+<button id="n-home" onclick="show('home')">🏠<br>Главная</button>
+<button id="n-add" onclick="show('add')">➕<br>Сделка</button>
+<button id="n-journal" onclick="show('journal')">📖<br>Журнал</button>
+<button id="n-stats" onclick="show('stats')">📊<br>Статистика</button>
+</div>
+<script>
+let side="BUY", currency=localStorage.currency||"USD", balance=+(localStorage.balance||0);
+let trades=JSON.parse(localStorage.trades||"[]");
+const sym={USD:"$",EUR:"€",RUB:"₽",GBP:"£",JPY:"¥"};
+function money(n){return (sym[currency]||currency)+" "+Number(n).toFixed(2)}
+function save(){localStorage.trades=JSON.stringify(trades);localStorage.balance=balance;localStorage.currency=currency}
+function show(id){
+  ["home","add","journal","stats"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id));
+  document.getElementById("title").textContent={home:"Главная",add:"Добавить сделку",journal:"Журнал",stats:"Статистика"}[id];
+  ["home","add","journal","stats"].forEach(x=>document.getElementById("n-"+x)?.classList.toggle("active",x===id));
+  render();
+}
+function pickSide(){document.getElementById("buy").style.outline=side==="BUY"?"2px solid #75e0a1":"none";document.getElementById("sell").style.outline=side==="SELL"?"2px solid #ff8f9b":"none"}
+function saveTrade(){
+  let pair=document.getElementById("pair").value.trim().toUpperCase(), amount=+document.getElementById("amount").value;
+  if(!pair||!amount){alert("Заполни пару и сумму");return}
+  let result=document.getElementById("result").value;
+  trades.unshift({pair,side,amount,expiry:document.getElementById("expiry").value||"—",tf:document.getElementById("tf").value,strategy:document.getElementById("strategy").value||"—",result,at:new Date().toLocaleString()});
+  balance += result==="WIN"?amount:result==="LOSS"?-amount:0;
+  save(); ["pair","amount","expiry","strategy"].forEach(id=>document.getElementById(id).value=""); show("journal");
+}
+function render(){
+  let wins=trades.filter(t=>t.result==="WIN"),losses=trades.filter(t=>t.result==="LOSS");
+  let profit=wins.reduce((s,t)=>s+t.amount,0), loss=losses.reduce((s,t)=>s+t.amount,0);
+  document.getElementById("balance").textContent=money(balance);document.getElementById("pnl").textContent="P&L: "+money(profit-loss);
+  document.getElementById("count").textContent=trades.length;document.getElementById("wins").textContent=wins.length;document.getElementById("losses").textContent=losses.length;
+  let pf=loss?profit/loss:null;document.getElementById("pf").textContent=pf?pf.toFixed(2):"—";document.getElementById("pf2").textContent=pf?pf.toFixed(2):"—";
+  let s=0;for(let t of trades){if(t.result==="WIN")s++;else break}document.getElementById("streak").textContent=s?s+" WIN":"—";
+  document.getElementById("trades").innerHTML=trades.length?trades.map(t=>`<div class="card trade"><div><b>${t.pair} · ${t.side}</b><div class="muted">${t.amount} · ${t.expiry} · ${t.tf}</div><div class="muted">${t.strategy}</div></div><span class="tag ${t.result==="WIN"?"win":"loss"}">${t.result}</span></div>`).join(""):'<div class="empty">Журнал пока пуст</div>';
+}
+function settings(){
+  let c=prompt("Валюта: USD, EUR, RUB, GBP или JPY",currency); if(!c)return;c=c.toUpperCase();
+  if(!sym[c]){alert("Доступно: USD, EUR, RUB, GBP, JPY");return}currency=c;save();render();
+}
+pickSide();show("home");
+</script>
+</body></html>
