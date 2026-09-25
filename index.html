@@ -25,13 +25,50 @@
 .news-value{background:#101419;border:1px solid #252c34;border-radius:10px;padding:9px;text-align:center}
 .news-value b{display:block;margin-top:4px}
 .impact-box{margin-top:12px;padding:12px;border-radius:12px;background:#21151c;color:#ffb1bb}
+
+/* V5.4 NEON CANDLESTICK BACKGROUND */
+body{
+  background:
+    radial-gradient(circle at 15% 20%, rgba(0,255,150,.12), transparent 28%),
+    radial-gradient(circle at 85% 25%, rgba(255,0,70,.13), transparent 30%),
+    linear-gradient(rgba(3,12,18,.80),rgba(3,12,18,.88)),
+    repeating-linear-gradient(90deg, transparent 0 38px, rgba(0,255,140,.035) 39px 40px),
+    repeating-linear-gradient(0deg, transparent 0 38px, rgba(255,30,60,.035) 39px 40px);
+  background-attachment:fixed;
+  position:relative;
+}
+body:before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:-1;
+  opacity:.62;
+  background:
+    linear-gradient(90deg, transparent 7%, rgba(0,255,150,.20) 7.2%, transparent 7.5%),
+    linear-gradient(90deg, transparent 21%, rgba(0,255,150,.14) 21.2%, transparent 21.5%),
+    linear-gradient(90deg, transparent 38%, rgba(255,20,55,.18) 38.2%, transparent 38.5%),
+    linear-gradient(90deg, transparent 57%, rgba(0,255,150,.16) 57.2%, transparent 57.5%),
+    linear-gradient(90deg, transparent 76%, rgba(255,20,55,.18) 76.2%, transparent 76.5%),
+    linear-gradient(90deg, transparent 91%, rgba(0,255,150,.16) 91.2%, transparent 91.5%);
+  filter:blur(1px);
+}
+.card,.panel,.stat,.trade-card,.news-card{
+  background:rgba(7,20,27,.68)!important;
+  backdrop-filter:blur(7px);
+  -webkit-backdrop-filter:blur(7px);
+  border-color:rgba(0,210,255,.20)!important;
+}
+
+.direction-badge{display:inline-block;padding:5px 9px;border-radius:9px;font-size:11px;font-weight:800;margin-left:6px}
+.direction-badge.buy{background:rgba(34,197,94,.18);color:#22c55e}
+.direction-badge.sell{background:rgba(239,68,68,.18);color:#ff6675}
+.direction-badge.neutral{background:rgba(148,163,184,.18);color:#cbd5e1}
+.news-detail{padding:18px;border-radius:18px;background:rgba(7,20,27,.82);border:1px solid rgba(0,210,255,.20)}
 </style>
 </head>
 <body>
 <div class="app">
  <div class="top"><div><div class="muted">TRADING JOURNAL</div><h1 id="title">Главная</h1></div><button class="ghost" onclick="openSettings()">⚙️</button></div>
  <section id="home">
-  <div class="card"><div class="muted">Текущий баланс</div><div class="balance" id="balance">$0.00</div><div class="return-pct" id="returnPct">+0.00% за всё время</div><div class="pnl" id="pnl">P&L: $0.00</div></div>
+  <div class="card"><div class="muted">Текущий баланс</div><div class="balance" id="balance">$0.00</div><div id="returnPct" style="font-size:16px;font-weight:800;margin-top:4px;color:#22c55e">+0.00% за всё время</div><div class="pnl" id="pnl">P&L: $0.00</div></div>
   <div class="grid"><div class="card stat"><div class="muted">Сделки</div><b id="count">0</b></div><div class="card stat"><div class="muted">Profit Factor</div><b id="pf">—</b></div></div>
   <button class="primary" onclick="show('add')">➕ Добавить сделку</button>
   <div class="card"><div class="muted">Последняя серия WIN</div><b id="streak">—</b></div>
@@ -98,7 +135,17 @@ function money(n){return (sym[currency]||currency)+" "+Number(n||0).toFixed(2)}
 function pnlOf(t){return t.result==="WIN"?+t.amount:t.result==="LOSS"?-+t.amount:0}
 function save(){localStorage.trades=JSON.stringify(trades);localStorage.transactions=JSON.stringify(transactions);localStorage.initialBalance=initialBalance;localStorage.currency=currency;localStorage.balance=currentBalance()}
 function transactionTotals(){let dep=transactions.filter(x=>x.type==="deposit").reduce((s,x)=>s+ +x.amount,0), wit=transactions.filter(x=>x.type==="withdraw").reduce((s,x)=>s+ +x.amount,0);return {dep,wit}}
-function currentBalance(){let tt=transactionTotals();return initialBalance+tt.dep-tt.wit+trades.reduce((s,t)=>s+pnlOf(t),0)}
+
+function tradeProfit(t){
+  const amount=Math.abs(Number(t.amount)||0);
+  const pct=Math.abs(Number(t.returnPct)||0);
+  if(String(t.result||"").toUpperCase()==="WIN") return amount*pct/100;
+  if(String(t.result||"").toUpperCase()==="LOSS") return -amount;
+  return Number(t.pnl)||0;
+}
+function currentBalance(){
+  return initialBalance + trades.reduce((s,t)=>s+tradeProfit(t),0);
+}
 function esc(s){return String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]))}
 function isoLocal(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function tradeDate(t){if(t.date)return t.date;let d=new Date(t.at);return isNaN(d)?"":isoLocal(d)}
@@ -170,6 +217,13 @@ function renderNextNews(){
   }else when="Время события";
   el.innerHTML=`<div class="row"><div><div class="news-time">🔴 Ближайшая важная новость</div><div style="margin-top:5px"><b>${esc(n.currency)} — ${esc(n.name)}</b></div></div><span class="news-time">${esc(n.time)}</span></div><div class="muted" style="margin-top:7px">${when}</div>`;
 }
+
+function getNewsDirection(n){
+  const s=((n.name||n.title||"")+" "+(n.currency||"")).toLowerCase();
+  if(/безработ|jobless|claims/.test(s)) return {cls:"sell",label:"🔴 SELL / ВНИЗ"};
+  if(/cpi|инфляц|inflation|nfp|payroll|gdp|ввп|ставк|rate|продаж/.test(s)) return {cls:"buy",label:"🟢 BUY / ВВЕРХ"};
+  return {cls:"neutral",label:"⚪ NEUTRAL"};
+}
 function renderNews(){
   renderNextNews();
   let list=newsEvents.filter(n=>newsFilter==="ALL"||n.currency===newsFilter).sort(newsSort);
@@ -185,7 +239,7 @@ function renderNews(){
         <div class="news-row">
           <div class="news-main">
             <div class="news-time">${esc(n.time)} · <span class="news-currency">${esc(n.currency)}</span></div>
-            <div class="news-name">${esc(n.name)}</div>
+            <div class="news-name">${esc(n.name)} <span class="direction-badge ${getNewsDirection(n).cls}">${getNewsDirection(n).label}</span></div>
           </div>
           <span class="news-tag ${impactClass(n.impact)}">${impactLabel(n.impact)}</span>
         </div>
@@ -212,5 +266,36 @@ function exportData(){let payload={version:5.2,currency,initialBalance,trades,tr
 function importData(e){let file=e.target.files[0];if(!file)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.trades))throw Error();if(!confirm("Импорт заменит текущий журнал. Продолжить?"))return;trades=d.trades;transactions=Array.isArray(d.transactions)?d.transactions:[];currency=sym[d.currency]?d.currency:currency;initialBalance=Number.isFinite(+d.initialBalance)?+d.initialBalance:0;save();closeModal();render();alert("Журнал восстановлен") }catch(err){alert("Не удалось прочитать файл")}};r.readAsText(file);e.target.value=""}
 function clearJournal(){if(!trades.length){alert("Журнал уже пуст");return}if(!confirm("Удалить ВСЕ сделки? Это действие нельзя отменить без резервной копии."))return;trades=[];transactions=[];save();closeModal();render();show("home")}
 pickSide();show("home");
+
+function openNewsDetail(index){
+  const n=(window.newsData||[])[index];
+  if(!n) return;
+  const d=getNewsDirection(n);
+  const actual=n.actual ?? "—", forecast=n.forecast ?? "—", previous=n.previous ?? "—";
+  const title=n.name||n.title||"Экономическое событие";
+  document.getElementById("newsDetailContent").innerHTML=
+    '<h2>'+title+'</h2>'+
+    '<div style="font-size:14px;color:#9ca3af;margin-bottom:14px">'+(n.currency||"")+'</div>'+
+    '<div style="font-size:16px;font-weight:800;margin-bottom:14px">Ожидаемая реакция: <span class="direction-badge '+d.cls+'">'+d.label+'</span></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">'+
+      '<div><small>Факт</small><br><b>'+actual+'</b></div>'+
+      '<div><small>Прогноз</small><br><b>'+forecast+'</b></div>'+
+      '<div><small>Пред.</small><br><b>'+previous+'</b></div>'+
+    '</div>'+
+    '<p><b>Важность:</b> '+(n.importance||"—")+'</p>'+
+    '<p><b>Валюта:</b> '+(n.currency||"—")+'</p>'+
+    '<p><b>Страна:</b> '+(n.country||"—")+'</p>'+
+    '<p><b>Последний выпуск:</b> '+(n.lastRelease||n.date||"—")+'</p>'+
+    '<p><b>Источник:</b> '+(n.source||"Экономический календарь")+'</p>'+
+    '<hr style="border-color:rgba(255,255,255,.1)">'+
+    '<h3>Что означает новость</h3>'+
+    '<p>'+(n.description||"Эта публикация может повлиять на ожидания участников рынка, валюту и волатильность. Реакция зависит от фактического значения относительно прогноза и предыдущего значения.")+'</p>';
+  document.querySelectorAll(".section").forEach(s=>s.style.display="none");
+  document.getElementById("newsDetail").style.display="block";
+}
+function backToNews(){
+  document.getElementById("newsDetail").style.display="none";
+  show("news");
+}
 </script>
 </body></html>
