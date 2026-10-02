@@ -130,7 +130,7 @@ let pnlExisting=trades.reduce((s,t)=>s+pnlOf(t),0);
 let initialBalance=storedInitial!==undefined?Number(storedInitial):(Number(localStorage.balance||0)-pnlExisting);
 if(!Number.isFinite(initialBalance))initialBalance=0;
 
-let side="BUY",editingId=null,filter="ALL",calDate=new Date(),selectedDate=null;
+let side="BUY",editingId=null,transactionEditingId=null,filter="ALL",calDate=new Date(),selectedDate=null;
 const monthNames=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 
 function money(n){
@@ -239,18 +239,144 @@ function render(){
   renderJournal();renderTransactions();renderBestDays();
 }
 function openTransaction(type){
-  document.getElementById("modalBox").innerHTML=`<div class="section-title">${type==="deposit"?"Пополнил счёт":"Вывел со счёта"}</div><label>Сумма<input id="txAmount" type="number" step="0.01" min="0.01" placeholder="100"></label><label>Дата<input id="txDate" type="date" value="${isoLocal(new Date())}"></label><div class="modal-actions"><button class="primary" onclick="saveTransaction('${type}')">Сохранить</button><button class="ghost" onclick="closeModal()">Отмена</button></div>`;
+  transactionEditingId=null;
+  document.getElementById("modalBox").innerHTML=`
+    <div class="section-title">${type==="deposit"?"Пополнил счёт":"Вывел со счёта"}</div>
+    <label>
+      Сумма
+      <input id="txAmount" type="number" step="0.01" min="0.01" placeholder="100">
+    </label>
+    <label>
+      Дата
+      <input id="txDate" type="date" value="${isoLocal(new Date())}">
+    </label>
+    <div class="modal-actions">
+      <button class="primary" onclick="saveTransaction('${type}')">Сохранить</button>
+      <button class="ghost" onclick="closeModal()">Отмена</button>
+    </div>`;
   document.getElementById("modal").classList.remove("hidden");
 }
-function saveTransaction(type){
-  const amount=Number(document.getElementById("txAmount").value),date=document.getElementById("txDate").value||isoLocal(new Date());
-  if(!Number.isFinite(amount)||amount<=0){alert("Укажи сумму");return}
-  transactions.unshift({id:Date.now()+Math.random(),type,amount,date,at:new Date().toLocaleString()});save();closeModal();render();
+
+function editTransaction(id){
+  const tx=transactions.find(x=>x.id===id);
+  if(!tx)return;
+
+  transactionEditingId=id;
+
+  document.getElementById("modalBox").innerHTML=`
+    <div class="section-title">Редактировать операцию</div>
+    <label>
+      Тип операции
+      <select id="txType">
+        <option value="deposit" ${tx.type==="deposit"?"selected":""}>➕ Пополнение</option>
+        <option value="withdraw" ${tx.type==="withdraw"?"selected":""}>➖ Вывод</option>
+      </select>
+    </label>
+    <label>
+      Сумма
+      <input id="txAmount" type="number" step="0.01" min="0.01" value="${Number(tx.amount)||0}">
+    </label>
+    <label>
+      Дата
+      <input id="txDate" type="date" value="${esc(tx.date||isoLocal(new Date()))}">
+    </label>
+    <div class="modal-actions">
+      <button class="primary" onclick="saveEditedTransaction()">Сохранить изменения</button>
+      <button class="ghost" onclick="closeModal()">Отмена</button>
+    </div>`;
+
+  document.getElementById("modal").classList.remove("hidden");
 }
-function deleteTransaction(id){const i=transactions.findIndex(x=>x.id===id);if(i<0)return;if(!confirm("Удалить эту операцию?"))return;transactions.splice(i,1);save();render()}
+
+function saveTransaction(type){
+  const amount=Number(document.getElementById("txAmount").value);
+  const date=document.getElementById("txDate").value||isoLocal(new Date());
+
+  if(!Number.isFinite(amount)||amount<=0){
+    alert("Укажи сумму");
+    return;
+  }
+
+  transactions.unshift({
+    id:Date.now()+Math.random(),
+    type,
+    amount,
+    date,
+    at:new Date().toLocaleString()
+  });
+
+  save();
+  closeModal();
+  render();
+}
+
+function saveEditedTransaction(){
+  if(transactionEditingId===null)return;
+
+  const tx=transactions.find(x=>x.id===transactionEditingId);
+  if(!tx)return;
+
+  const amount=Number(document.getElementById("txAmount").value);
+  const date=document.getElementById("txDate").value||isoLocal(new Date());
+  const type=document.getElementById("txType").value;
+
+  if(!Number.isFinite(amount)||amount<=0){
+    alert("Укажи сумму");
+    return;
+  }
+
+  tx.amount=amount;
+  tx.date=date;
+  tx.type=type;
+  tx.at=new Date().toLocaleString();
+
+  transactionEditingId=null;
+  save();
+  closeModal();
+  render();
+}
+
+function deleteTransaction(id){
+  const i=transactions.findIndex(x=>x.id===id);
+  if(i<0)return;
+
+  if(!confirm("Удалить эту операцию?"))return;
+
+  transactions.splice(i,1);
+  save();
+  render();
+}
+
 function renderTransactions(){
-  const el=document.getElementById("transactions");if(!transactions.length){el.innerHTML='<div class="empty">Нет пополнений и выводов</div>';return}
-  el.innerHTML=transactions.map(x=>`<div class="card tx"><div class="tx-main"><b>${x.type==="deposit"?"➕ Пополнение":"➖ Вывод"}</b><div class="muted">${esc(x.date)}</div></div><div class="tx-actions"><b class="${x.type==="deposit"?"money-green":"money-red"}">${x.type==="deposit"?"+":"-"}${money(x.amount)}</b><button class="delete" onclick="deleteTransaction(${x.id})">🗑️</button></div></div>`).join("");
+  const el=document.getElementById("transactions");
+
+  if(!transactions.length){
+    el.innerHTML='<div class="empty">Нет пополнений и выводов</div>';
+    return;
+  }
+
+  el.innerHTML=transactions.map(x=>`
+    <div class="card tx">
+      <div class="tx-main">
+        <b>${x.type==="deposit"?"➕ Пополнение":"➖ Вывод"}</b>
+        <div class="muted">${esc(x.date||"—")}</div>
+      </div>
+
+      <div class="tx-actions">
+        <b class="${x.type==="deposit"?"money-green":"money-red"}">
+          ${x.type==="deposit"?"+":"-"}${money(x.amount)}
+        </b>
+
+        <button class="edit" onclick="editTransaction(${x.id})" title="Редактировать">
+          ✏️
+        </button>
+
+        <button class="delete" onclick="deleteTransaction(${x.id})" title="Удалить">
+          🗑️
+        </button>
+      </div>
+    </div>
+  `).join("");
 }
 function renderJournal(){
   const list=trades.filter(t=>filter==="ALL"||t.result===filter||t.side===filter);
