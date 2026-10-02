@@ -5,7 +5,7 @@
 <meta name="viewport"
       content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 
-<title>Trading Journal V7</title>
+<title>Trading Journal V8</title>
 
 <style>
 *{
@@ -176,6 +176,10 @@ header{
   color:#ff5667;
 }
 
+.yellow-text{
+  color:#f2c65b;
+}
+
 .muted{
   color:#8b94a2;
 }
@@ -252,6 +256,10 @@ input:focus,select:focus{
   font-weight:800;
 }
 
+.result-btn.wait{
+  grid-column:1 / -1;
+}
+
 .result-btn.active-win{
   background:#116e4d;
   border-color:#19b77a;
@@ -260,6 +268,12 @@ input:focus,select:focus{
 .result-btn.active-loss{
   background:#7b2632;
   border-color:#ef4b5e;
+}
+
+.result-btn.active-wait{
+  background:#4b3c16;
+  border-color:#b89436;
+  color:#f5d777;
 }
 
 .trade-card{
@@ -271,6 +285,7 @@ input:focus,select:focus{
   justify-content:space-between;
   align-items:center;
   margin-bottom:10px;
+  gap:8px;
 }
 
 .trade-pair{
@@ -285,6 +300,7 @@ input:focus,select:focus{
   border-radius:8px;
   font-size:11px;
   font-weight:850;
+  margin-left:3px;
 }
 
 .badge.buy{
@@ -307,6 +323,11 @@ input:focus,select:focus{
   color:#ff7180;
 }
 
+.badge.wait{
+  background:#403517;
+  color:#f2c65b;
+}
+
 .trade-row{
   display:flex;
   justify-content:space-between;
@@ -323,6 +344,7 @@ input:focus,select:focus{
   display:flex;
   gap:7px;
   margin-top:13px;
+  flex-wrap:wrap;
 }
 
 .small-btn{
@@ -470,17 +492,19 @@ input:focus,select:focus{
 }
 
 .day{
-  min-height:47px;
+  min-height:58px;
   border:1px solid #20242d;
   border-radius:10px;
   background:#0d1016;
   padding:6px;
   font-size:11px;
   position:relative;
+  cursor:pointer;
 }
 
 .day.muted-day{
   opacity:.35;
+  cursor:default;
 }
 
 .day.today{
@@ -497,6 +521,10 @@ input:focus,select:focus{
   border-color:#702d37;
 }
 
+.day.has-events{
+  box-shadow:inset 0 -2px 0 #315fd4;
+}
+
 .day-num{
   font-weight:800;
 }
@@ -510,6 +538,46 @@ input:focus,select:focus{
   font-weight:800;
   white-space:nowrap;
   overflow:hidden;
+}
+
+.day-events{
+  position:absolute;
+  top:5px;
+  right:5px;
+  font-size:9px;
+}
+
+.day-detail{
+  border-bottom:1px solid #20242d;
+  padding:11px 0;
+}
+
+.day-detail:last-child{
+  border-bottom:0;
+}
+
+.day-detail-head{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.day-detail-title{
+  font-weight:800;
+}
+
+.day-detail-sub{
+  color:#858e9c;
+  font-size:11px;
+  margin-top:3px;
+}
+
+.day-summary{
+  background:#0d1016;
+  border:1px solid #20242d;
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:10px;
 }
 
 .news-card{
@@ -689,7 +757,11 @@ canvas{
   }
 
   .day{
-    min-height:43px;
+    min-height:54px;
+  }
+
+  .badge{
+    padding:4px 6px;
   }
 }
 </style>
@@ -711,62 +783,106 @@ canvas{
 <section id="home" class="section active">
 
   <div class="card balance-card">
-    <div class="balance-label">Текущий баланс</div>
-    <div id="homeBalance" class="balance">0.00</div>
+
+    <div class="balance-label">
+      Текущий баланс
+    </div>
+
+    <div id="homeBalance" class="balance">
+      0.00
+    </div>
 
     <div class="balance-actions">
-      <button class="btn green" onclick="openTransaction('deposit')">
+
+      <button
+        class="btn green"
+        onclick="openTransaction('deposit')">
         ＋ Пополнить
       </button>
 
-      <button class="btn red" onclick="openTransaction('withdraw')">
+      <button
+        class="btn red"
+        onclick="openTransaction('withdraw')">
         − Вывести
       </button>
+
     </div>
+
   </div>
 
+  <!-- ОСТАЛОСЬ создаётся JS -->
+  <div id="remainingCard"></div>
+
   <div class="card">
-    <div class="card-title">Сегодня</div>
+
+    <div class="card-title">
+      Сегодня
+    </div>
 
     <div class="grid2">
+
       <div class="stat-box">
-        <div class="stat-label">Сделок</div>
-        <div id="todayTrades" class="stat-value">0</div>
+        <div class="stat-label">
+          Сделок
+        </div>
+
+        <div id="todayTrades"
+             class="stat-value">
+          0
+        </div>
       </div>
 
       <div class="stat-box">
-        <div class="stat-label">Результат</div>
-        <div id="todayPnl" class="stat-value">0.00</div>
+        <div class="stat-label">
+          Результат
+        </div>
+
+        <div id="todayPnl"
+             class="stat-value">
+          0.00
+        </div>
       </div>
+
     </div>
+
   </div>
 
   <div class="card">
-    <div class="card-title">Последние сделки</div>
-    <div id="recentTrades"></div>
-  </div>
 
-  <div class="card">
-    <div class="card-title">Финансы</div>
+    <div class="card-title">
+      Финансы
+    </div>
+
     <div id="homeTransactions"></div>
+
   </div>
 
 </section>
+
 
 <!-- ADD -->
 <section id="add" class="section">
 
   <div class="card">
 
-    <div class="card-title" id="tradeFormTitle">
+    <div class="card-title"
+         id="tradeFormTitle">
       Новая сделка
     </div>
 
-    <input type="hidden" id="editTradeId">
+    <input type="hidden"
+           id="editTradeId">
 
     <div class="form-group">
-      <label class="form-label">Пара</label>
-      <input id="pair" list="pairList" placeholder="EURUSD">
+
+      <label class="form-label">
+        Пара
+      </label>
+
+      <input
+        id="pair"
+        list="pairList"
+        placeholder="EURUSD">
 
       <datalist id="pairList">
         <option value="EURUSD">
@@ -782,94 +898,189 @@ canvas{
         <option value="EURJPY">
         <option value="GBPJPY">
         <option value="XAUUSD">
+        <option value="US30">
+        <option value="BTCUSD">
       </datalist>
+
     </div>
 
     <div class="form-group">
-      <label class="form-label">Направление</label>
+
+      <label class="form-label">
+        Направление
+      </label>
 
       <div class="side-buttons">
-        <button id="buyBtn"
-                class="side-btn"
-                onclick="setSide('BUY')">
+
+        <button
+          id="buyBtn"
+          class="side-btn"
+          onclick="setSide('BUY')">
           BUY
         </button>
 
-        <button id="sellBtn"
-                class="side-btn"
-                onclick="setSide('SELL')">
+        <button
+          id="sellBtn"
+          class="side-btn"
+          onclick="setSide('SELL')">
           SELL
         </button>
+
       </div>
+
     </div>
 
     <div class="form-group">
-      <label class="form-label">Сумма</label>
-      <input id="amount" type="number" step="0.01" placeholder="10">
+
+      <label class="form-label">
+        Сумма
+      </label>
+
+      <input
+        id="amount"
+        type="number"
+        step="0.01"
+        placeholder="10">
+
     </div>
 
     <div class="form-group">
-      <label class="form-label">Экспирация</label>
+
+      <label class="form-label">
+        Экспирация
+      </label>
 
       <select id="expiry">
-        <option value="1">1 мин</option>
-        <option value="2" selected>2 мин</option>
-        <option value="3">3 мин</option>
-        <option value="4">4 мин</option>
-        <option value="5">5 мин</option>
+
+        <option value="1">
+          1 мин
+        </option>
+
+        <option value="2"
+                selected>
+          2 мин
+        </option>
+
+        <option value="3">
+          3 мин
+        </option>
+
+        <option value="4">
+          4 мин
+        </option>
+
+        <option value="5">
+          5 мин
+        </option>
+
       </select>
+
     </div>
 
     <div class="form-group">
-      <label class="form-label">Таймфрейм</label>
+
+      <label class="form-label">
+        Таймфрейм
+      </label>
 
       <select id="timeframe">
-        <option value="M1">M1</option>
-        <option value="M2">M2</option>
-        <option value="M3">M3</option>
-        <option value="M4">M4</option>
-        <option value="M5" selected>M5</option>
+
+        <option value="M1">
+          M1
+        </option>
+
+        <option value="M2">
+          M2
+        </option>
+
+        <option value="M3">
+          M3
+        </option>
+
+        <option value="M4">
+          M4
+        </option>
+
+        <option value="M5"
+                selected>
+          M5
+        </option>
+
       </select>
+
     </div>
 
     <div class="form-group">
-      <label class="form-label">Стратегия</label>
-      <input id="strategy" value="FOREX CORE">
+
+      <label class="form-label">
+        Стратегия
+      </label>
+
+      <input
+        id="strategy"
+        value="FOREX CORE">
+
     </div>
 
     <div class="form-group">
-      <label class="form-label">Результат</label>
+
+      <label class="form-label">
+        Результат
+      </label>
 
       <div class="result-buttons">
-        <button id="winBtn"
-                class="result-btn"
-                onclick="setResult('WIN')">
+
+        <button
+          id="winBtn"
+          class="result-btn"
+          onclick="setResult('WIN')">
           WIN
         </button>
 
-        <button id="lossBtn"
-                class="result-btn"
-                onclick="setResult('LOSS')">
+        <button
+          id="lossBtn"
+          class="result-btn"
+          onclick="setResult('LOSS')">
           LOSS
         </button>
+
+        <button
+          id="waitBtn"
+          class="result-btn wait"
+          onclick="setResult('WAIT')">
+          WAIT / ОЖИДАНИЕ
+        </button>
+
       </div>
+
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Выплата, %</label>
-      <input id="payoutPct" type="number" value="100">
+    <div id="payoutField"
+         class="form-group">
+
+      <label class="form-label">
+        Выплата, %
+      </label>
+
+      <input
+        id="payoutPct"
+        type="number"
+        value="100">
+
     </div>
 
-    <button id="saveTradeBtn"
-            class="btn blue full"
-            onclick="saveTrade()">
+    <button
+      id="saveTradeBtn"
+      class="btn blue full"
+      onclick="saveTrade()">
       Сохранить сделку
     </button>
 
-    <button id="cancelEditBtn"
-            class="btn gray full"
-            onclick="resetTradeForm()"
-            style="display:none;margin-top:8px">
+    <button
+      id="cancelEditBtn"
+      class="btn gray full"
+      onclick="resetTradeForm()"
+      style="display:none;margin-top:8px">
       Отмена редактирования
     </button>
 
@@ -877,44 +1088,72 @@ canvas{
 
 </section>
 
+
 <!-- JOURNAL -->
 <section id="journal" class="section">
 
   <div class="card">
-    <div class="card-title">Журнал сделок</div>
+
+    <div class="card-title">
+      Журнал сделок
+    </div>
 
     <div class="filter-row">
-      <button class="filter active" onclick="setTradeFilter('ALL',this)">
+
+      <button
+        class="filter active"
+        onclick="setTradeFilter('ALL',this)">
         Все
       </button>
 
-      <button class="filter" onclick="setTradeFilter('WIN',this)">
+      <button
+        class="filter"
+        onclick="setTradeFilter('WIN',this)">
         WIN
       </button>
 
-      <button class="filter" onclick="setTradeFilter('LOSS',this)">
+      <button
+        class="filter"
+        onclick="setTradeFilter('LOSS',this)">
         LOSS
       </button>
 
-      <button class="filter" onclick="setTradeFilter('BUY',this)">
+      <button
+        class="filter"
+        onclick="setTradeFilter('WAIT',this)">
+        WAIT
+      </button>
+
+      <button
+        class="filter"
+        onclick="setTradeFilter('BUY',this)">
         BUY
       </button>
 
-      <button class="filter" onclick="setTradeFilter('SELL',this)">
+      <button
+        class="filter"
+        onclick="setTradeFilter('SELL',this)">
         SELL
       </button>
+
     </div>
 
     <div id="journalList"></div>
+
   </div>
 
   <div class="card">
-    <div class="card-title">Финансовые операции</div>
+
+    <div class="card-title">
+      Финансовые операции
+    </div>
 
     <div id="transactionsList"></div>
+
   </div>
 
 </section>
+
 
 <!-- CALENDAR -->
 <section id="calendar" class="section">
@@ -922,15 +1161,31 @@ canvas{
   <div class="card">
 
     <div class="calendar-head">
-      <div id="monthTitle" class="month-title"></div>
+
+      <div id="monthTitle"
+           class="month-title">
+      </div>
 
       <div class="month-nav">
-        <button class="month-btn" onclick="changeMonth(-1)">‹</button>
-        <button class="month-btn" onclick="changeMonth(1)">›</button>
+
+        <button
+          class="month-btn"
+          onclick="changeMonth(-1)">
+          ‹
+        </button>
+
+        <button
+          class="month-btn"
+          onclick="changeMonth(1)">
+          ›
+        </button>
+
       </div>
+
     </div>
 
     <div class="weekdays">
+
       <div class="weekday">Пн</div>
       <div class="weekday">Вт</div>
       <div class="weekday">Ср</div>
@@ -938,60 +1193,96 @@ canvas{
       <div class="weekday">Пт</div>
       <div class="weekday">Сб</div>
       <div class="weekday">Вс</div>
+
     </div>
 
-    <div id="calendarGrid" class="calendar-grid"></div>
+    <div id="calendarGrid"
+         class="calendar-grid">
+    </div>
 
   </div>
 
   <div class="card">
-    <div class="card-title">Лучшие дни</div>
+
+    <div class="card-title">
+      Лучшие дни
+    </div>
+
     <div id="bestDays"></div>
+
   </div>
 
 </section>
+
 
 <!-- NEWS -->
 <section id="news" class="section">
 
   <div class="card">
-    <div class="card-title">Экономические события</div>
+
+    <div class="card-title">
+      Экономические события
+    </div>
 
     <div class="news-card">
 
       <div class="news-top">
+
         <div>
-          <div class="news-name">🇺🇸 Nonfarm Payrolls</div>
-          <div class="news-date">USD • Nonfarm Payrolls</div>
+
+          <div class="news-name">
+            🇺🇸 Nonfarm Payrolls
+          </div>
+
+          <div class="news-date">
+            USD • Nonfarm Payrolls
+          </div>
+
         </div>
 
-        <div class="news-impact">HIGH</div>
+        <div class="news-impact">
+          HIGH
+        </div>
+
       </div>
 
       <div class="news-desc">
-        Данные по занятости в США. Событие может заметно влиять
-        на USD и валютные пары.
+        Данные по занятости в США.
       </div>
 
       <button
         class="news-open"
-        onclick="openInvestingEvent()">
+        onclick="openInvestingEvent('NFP')">
         Открыть событие в Investing.com ↗
       </button>
 
     </div>
+
   </div>
 
+
   <div class="card">
+
     <div class="news-card">
 
       <div class="news-top">
+
         <div>
-          <div class="news-name">🇺🇸 CPI</div>
-          <div class="news-date">USD • Consumer Price Index</div>
+
+          <div class="news-name">
+            🇺🇸 CPI
+          </div>
+
+          <div class="news-date">
+            USD • Consumer Price Index
+          </div>
+
         </div>
 
-        <div class="news-impact">HIGH</div>
+        <div class="news-impact">
+          HIGH
+        </div>
+
       </div>
 
       <div class="news-desc">
@@ -1000,184 +1291,338 @@ canvas{
 
       <button
         class="news-open"
-        onclick="openInvestingCalendar()">
-        Открыть в Investing.com ↗
+        onclick="openInvestingEvent('CPI')">
+        Открыть событие в Investing.com ↗
       </button>
 
     </div>
+
   </div>
 
+
   <div class="card">
+
     <div class="news-card">
 
       <div class="news-top">
+
         <div>
-          <div class="news-name">🏦 Central Banks</div>
-          <div class="news-date">Процентные ставки</div>
+
+          <div class="news-name">
+            🏦 Central Banks
+          </div>
+
+          <div class="news-date">
+            Fed • Interest Rate Decision
+          </div>
+
         </div>
 
-        <div class="news-impact">HIGH</div>
+        <div class="news-impact">
+          HIGH
+        </div>
+
       </div>
 
       <div class="news-desc">
-        Решения центральных банков и процентные ставки.
+        Решение ФРС по процентной ставке.
       </div>
 
       <button
         class="news-open"
-        onclick="openInvestingCalendar()">
-        Открыть календарь ↗
+        onclick="openInvestingEvent('FED')">
+        Открыть событие в Investing.com ↗
       </button>
 
     </div>
+
   </div>
 
+
   <div class="card">
+
     <div class="news-card">
 
       <div class="news-top">
+
         <div>
-          <div class="news-name">📊 GDP</div>
-          <div class="news-date">ВВП</div>
+
+          <div class="news-name">
+            📊 GDP
+          </div>
+
+          <div class="news-date">
+            USD • Gross Domestic Product
+          </div>
+
         </div>
 
-        <div class="news-impact">MEDIUM</div>
+        <div class="news-impact">
+          MEDIUM
+        </div>
+
       </div>
 
       <div class="news-desc">
-        Данные экономического роста.
+        Данные экономического роста США.
       </div>
 
       <button
         class="news-open"
-        onclick="openInvestingCalendar()">
-        Открыть календарь ↗
+        onclick="openInvestingEvent('GDP')">
+        Открыть событие в Investing.com ↗
       </button>
 
     </div>
+
   </div>
 
 </section>
+
 
 <!-- STATS -->
 <section id="stats" class="section">
 
   <div class="card">
-    <div class="card-title">Статистика</div>
+
+    <div class="card-title">
+      Статистика
+    </div>
 
     <div class="grid2">
 
       <div class="stat-box">
-        <div class="stat-label">Всего сделок</div>
-        <div id="statTotal" class="stat-value">0</div>
+
+        <div class="stat-label">
+          Всего сделок
+        </div>
+
+        <div id="statTotal"
+             class="stat-value">
+          0
+        </div>
+
       </div>
 
       <div class="stat-box">
-        <div class="stat-label">WIN</div>
-        <div id="statWins" class="stat-value green-text">0</div>
+
+        <div class="stat-label">
+          WIN
+        </div>
+
+        <div id="statWins"
+             class="stat-value green-text">
+          0
+        </div>
+
       </div>
 
       <div class="stat-box">
-        <div class="stat-label">LOSS</div>
-        <div id="statLosses" class="stat-value red-text">0</div>
+
+        <div class="stat-label">
+          LOSS
+        </div>
+
+        <div id="statLosses"
+             class="stat-value red-text">
+          0
+        </div>
+
       </div>
 
       <div class="stat-box">
-        <div class="stat-label">Profit Factor</div>
-        <div id="statPF" class="stat-value">0</div>
+
+        <div class="stat-label">
+          Profit Factor
+        </div>
+
+        <div id="statPF"
+             class="stat-value">
+          0
+        </div>
+
       </div>
 
       <div class="stat-box">
-        <div class="stat-label">Общий результат</div>
-        <div id="statPnl" class="stat-value">0.00</div>
+
+        <div class="stat-label">
+          Общий результат
+        </div>
+
+        <div id="statPnl"
+             class="stat-value">
+          0.00
+        </div>
+
       </div>
 
       <div class="stat-box">
-        <div class="stat-label">WIN streak</div>
-        <div id="statStreak" class="stat-value">0</div>
+
+        <div class="stat-label">
+          WIN streak
+        </div>
+
+        <div id="statStreak"
+             class="stat-value">
+          0
+        </div>
+
       </div>
 
     </div>
+
   </div>
 
+
   <div class="card">
-    <div class="card-title">Баланс за последние 30 дней</div>
+
+    <div class="card-title">
+      Баланс за последние 30 дней
+    </div>
 
     <div class="chart-wrap">
+
       <canvas id="balanceChart"></canvas>
+
     </div>
+
   </div>
 
 </section>
 
 </div>
 
+
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
 
-  <button class="nav-btn active" onclick="showSection('home',this)">
-    <span class="nav-icon">🏠</span>
+  <button
+    class="nav-btn active"
+    onclick="showSection('home',this)">
+
+    <span class="nav-icon">
+      🏠
+    </span>
+
     Главная
+
   </button>
 
-  <button class="nav-btn" onclick="showSection('add',this)">
-    <span class="nav-icon">➕</span>
+
+  <button
+    class="nav-btn"
+    onclick="showSection('add',this)">
+
+    <span class="nav-icon">
+      ➕
+    </span>
+
     Сделка
+
   </button>
 
-  <button class="nav-btn" onclick="showSection('journal',this)">
-    <span class="nav-icon">📒</span>
+
+  <button
+    class="nav-btn"
+    onclick="showSection('journal',this)">
+
+    <span class="nav-icon">
+      📒
+    </span>
+
     Журнал
+
   </button>
 
-  <button class="nav-btn" onclick="showSection('calendar',this)">
-    <span class="nav-icon">📅</span>
+
+  <button
+    class="nav-btn"
+    onclick="showSection('calendar',this)">
+
+    <span class="nav-icon">
+      📅
+    </span>
+
     Календарь
+
   </button>
 
-  <button class="nav-btn" onclick="showSection('news',this)">
-    <span class="nav-icon">📰</span>
+
+  <button
+    class="nav-btn"
+    onclick="showSection('news',this)">
+
+    <span class="nav-icon">
+      📰
+    </span>
+
     Новости
+
   </button>
 
-  <button class="nav-btn" onclick="showSection('stats',this)">
-    <span class="nav-icon">📊</span>
+
+  <button
+    class="nav-btn"
+    onclick="showSection('stats',this)">
+
+    <span class="nav-icon">
+      📊
+    </span>
+
     Статистика
+
   </button>
 
 </nav>
 
+
 <!-- MODAL -->
-<div id="modalBg" class="modal-bg" onclick="modalOutside(event)">
-  <div class="modal" id="modalContent"></div>
+<div id="modalBg"
+     class="modal-bg"
+     onclick="modalOutside(event)">
+
+  <div class="modal"
+       id="modalContent">
+  </div>
+
 </div>
 
+
 <script>
+
 /* =========================
    STORAGE
 ========================= */
 
-let trades = JSON.parse(
-  localStorage.getItem("trades") || "[]"
-);
+let trades =
+  JSON.parse(
+    localStorage.getItem("trades") || "[]"
+  );
 
-let transactions = JSON.parse(
-  localStorage.getItem("transactions") || "[]"
-);
+let transactions =
+  JSON.parse(
+    localStorage.getItem("transactions") || "[]"
+  );
 
 let currency =
   localStorage.getItem("currency") || "USD";
 
 let initialBalance =
-  Number(localStorage.getItem("initialBalance") || 0);
+  Number(
+    localStorage.getItem("initialBalance") || 0
+  );
 
 let balanceAdjustment =
   localStorage.getItem("balanceAdjustment") !== null
-    ? Number(localStorage.getItem("balanceAdjustment"))
+    ? Number(
+        localStorage.getItem("balanceAdjustment")
+      )
     : 0;
 
 let recentPairs =
-  JSON.parse(localStorage.getItem("recentPairs") || "[]");
+  JSON.parse(
+    localStorage.getItem("recentPairs") || "[]"
+  );
 
 let tradeFilter = "ALL";
 
@@ -1202,7 +1647,9 @@ const currencySymbols = {
 };
 
 function money(n){
-  const value = Number(n || 0);
+
+  const value =
+    Number(n || 0);
 
   return (
     (currencySymbols[currency] || currency) +
@@ -1217,6 +1664,7 @@ function money(n){
 ========================= */
 
 function saveAll(){
+
   localStorage.setItem(
     "trades",
     JSON.stringify(trades)
@@ -1256,13 +1704,14 @@ function saveAll(){
 function pnlOf(t){
 
   if(
-    t.side === "WAIT" ||
-    t.result === "WAIT"
+    t.result === "WAIT" ||
+    t.side === "WAIT"
   ){
     return 0;
   }
 
-  const amount = Number(t.amount || 0);
+  const amount =
+    Number(t.amount || 0);
 
   if(t.result === "WIN"){
 
@@ -1271,7 +1720,11 @@ function pnlOf(t){
         ? 100
         : Number(t.payoutPct);
 
-    return amount * payout / 100;
+    return (
+      amount *
+      payout /
+      100
+    );
   }
 
   if(t.result === "LOSS"){
@@ -1303,7 +1756,10 @@ function transactionTotals(){
 
   });
 
-  return {dep,wit};
+  return {
+    dep,
+    wit
+  };
 }
 
 
@@ -1313,11 +1769,13 @@ function transactionTotals(){
 
 function calculatedBalance(){
 
-  const tt = transactionTotals();
+  const tt =
+    transactionTotals();
 
   const tradePnl =
     trades.reduce(
-      (sum,t) => sum + pnlOf(t),
+      (sum,t) =>
+        sum + pnlOf(t),
       0
     );
 
@@ -1336,7 +1794,10 @@ function calculatedBalance(){
 
 function currentBalance(){
 
-  return calculatedBalance() + balanceAdjustment;
+  return (
+    calculatedBalance() +
+    balanceAdjustment
+  );
 }
 
 
@@ -1347,13 +1808,17 @@ function currentBalance(){
 function showSection(id,btn){
 
   document.querySelectorAll(".section")
-    .forEach(s => s.classList.remove("active"));
+    .forEach(s =>
+      s.classList.remove("active")
+    );
 
   document.getElementById(id)
     .classList.add("active");
 
   document.querySelectorAll(".nav-btn")
-    .forEach(b => b.classList.remove("active"));
+    .forEach(b =>
+      b.classList.remove("active")
+    );
 
   if(btn){
     btn.classList.add("active");
@@ -1404,6 +1869,25 @@ function setResult(result){
       "active-loss",
       result === "LOSS"
     );
+
+  document.getElementById("waitBtn")
+    .classList.toggle(
+      "active-wait",
+      result === "WAIT"
+    );
+
+  const payoutField =
+    document.getElementById(
+      "payoutField"
+    );
+
+  if(payoutField){
+
+    payoutField.style.display =
+      result === "WIN"
+        ? "block"
+        : "none";
+  }
 }
 
 
@@ -1413,23 +1897,48 @@ function setResult(result){
 
 function resetTradeForm(){
 
-  document.getElementById("editTradeId").value = "";
+  document.getElementById(
+    "editTradeId"
+  ).value = "";
 
-  document.getElementById("tradeFormTitle").textContent =
+  document.getElementById(
+    "tradeFormTitle"
+  ).textContent =
     "Новая сделка";
 
-  document.getElementById("saveTradeBtn").textContent =
+  document.getElementById(
+    "saveTradeBtn"
+  ).textContent =
     "Сохранить сделку";
 
-  document.getElementById("cancelEditBtn").style.display =
+  document.getElementById(
+    "cancelEditBtn"
+  ).style.display =
     "none";
 
-  document.getElementById("pair").value = "";
-  document.getElementById("amount").value = "";
-  document.getElementById("expiry").value = "2";
-  document.getElementById("timeframe").value = "M5";
-  document.getElementById("strategy").value = "FOREX CORE";
-  document.getElementById("payoutPct").value = "100";
+  document.getElementById(
+    "pair"
+  ).value = "";
+
+  document.getElementById(
+    "amount"
+  ).value = "";
+
+  document.getElementById(
+    "expiry"
+  ).value = "2";
+
+  document.getElementById(
+    "timeframe"
+  ).value = "M5";
+
+  document.getElementById(
+    "strategy"
+  ).value = "FOREX CORE";
+
+  document.getElementById(
+    "payoutPct"
+  ).value = "100";
 
   selectedSide = "";
   selectedResult = "";
@@ -1445,6 +1954,14 @@ function resetTradeForm(){
 
   document.getElementById("lossBtn")
     .classList.remove("active-loss");
+
+  document.getElementById("waitBtn")
+    .classList.remove("active-wait");
+
+  document.getElementById(
+    "payoutField"
+  ).style.display =
+    "block";
 }
 
 
@@ -1474,16 +1991,22 @@ function saveTrade(){
     document.getElementById("timeframe").value;
 
   const strategy =
-    document.getElementById("strategy").value
-      .trim() || "FOREX CORE";
+    document.getElementById("strategy")
+      .value
+      .trim() ||
+    "FOREX CORE";
 
   const payoutPct =
     Number(
-      document.getElementById("payoutPct").value
+      document.getElementById(
+        "payoutPct"
+      ).value
     );
 
   const editId =
-    document.getElementById("editTradeId").value;
+    document.getElementById(
+      "editTradeId"
+    ).value;
 
   if(!pair){
     alert("Укажи валютную пару");
@@ -1501,17 +2024,22 @@ function saveTrade(){
   }
 
   if(!selectedResult){
-    alert("Выбери WIN или LOSS");
+    alert(
+      "Выбери WIN, LOSS или WAIT"
+    );
     return;
   }
 
-  const now = new Date().toISOString();
+  const now =
+    new Date().toISOString();
 
   if(editId){
 
     const index =
       trades.findIndex(
-        t => String(t.id) === String(editId)
+        t =>
+          String(t.id) ===
+          String(editId)
       );
 
     if(index !== -1){
@@ -1526,8 +2054,11 @@ function saveTrade(){
         strategy,
         result:selectedResult,
         payoutPct,
-        date:trades[index].date || now
+        date:
+          trades[index].date ||
+          now
       };
+
     }
 
   }else{
@@ -1551,8 +2082,11 @@ function saveTrade(){
   }
 
   if(!recentPairs.includes(pair)){
+
     recentPairs.unshift(pair);
-    recentPairs = recentPairs.slice(0,10);
+
+    recentPairs =
+      recentPairs.slice(0,10);
   }
 
   saveAll();
@@ -1561,7 +2095,9 @@ function saveTrade(){
 
   showSection(
     "journal",
-    document.querySelectorAll(".nav-btn")[2]
+    document.querySelectorAll(
+      ".nav-btn"
+    )[2]
   );
 }
 
@@ -1574,47 +2110,75 @@ function editTrade(id){
 
   const t =
     trades.find(
-      x => String(x.id) === String(id)
+      x =>
+        String(x.id) ===
+        String(id)
     );
 
   if(!t) return;
 
-  document.getElementById("editTradeId").value =
-    t.id;
+  document.getElementById(
+    "editTradeId"
+  ).value = t.id;
 
-  document.getElementById("tradeFormTitle").textContent =
+  document.getElementById(
+    "tradeFormTitle"
+  ).textContent =
     "Редактирование сделки";
 
-  document.getElementById("saveTradeBtn").textContent =
+  document.getElementById(
+    "saveTradeBtn"
+  ).textContent =
     "Сохранить изменения";
 
-  document.getElementById("cancelEditBtn").style.display =
+  document.getElementById(
+    "cancelEditBtn"
+  ).style.display =
     "block";
 
-  document.getElementById("pair").value =
+  document.getElementById(
+    "pair"
+  ).value =
     t.pair || "";
 
-  document.getElementById("amount").value =
+  document.getElementById(
+    "amount"
+  ).value =
     t.amount || "";
 
-  document.getElementById("expiry").value =
+  document.getElementById(
+    "expiry"
+  ).value =
     t.expiry || 2;
 
-  document.getElementById("timeframe").value =
+  document.getElementById(
+    "timeframe"
+  ).value =
     t.timeframe || "M5";
 
-  document.getElementById("strategy").value =
+  document.getElementById(
+    "strategy"
+  ).value =
     t.strategy || "FOREX CORE";
 
-  document.getElementById("payoutPct").value =
+  document.getElementById(
+    "payoutPct"
+  ).value =
     t.payoutPct ?? 100;
 
-  setSide(t.side || "");
-  setResult(t.result || "");
+  setSide(
+    t.side || ""
+  );
+
+  setResult(
+    t.result || ""
+  );
 
   showSection(
     "add",
-    document.querySelectorAll(".nav-btn")[1]
+    document.querySelectorAll(
+      ".nav-btn"
+    )[1]
   );
 }
 
@@ -1627,46 +2191,75 @@ function copyTrade(id){
 
   const t =
     trades.find(
-      x => String(x.id) === String(id)
+      x =>
+        String(x.id) ===
+        String(id)
     );
 
   if(!t) return;
 
-  document.getElementById("pair").value =
+  document.getElementById(
+    "pair"
+  ).value =
     t.pair || "";
 
-  document.getElementById("amount").value =
+  document.getElementById(
+    "amount"
+  ).value =
     t.amount || "";
 
-  document.getElementById("expiry").value =
+  document.getElementById(
+    "expiry"
+  ).value =
     t.expiry || 2;
 
-  document.getElementById("timeframe").value =
+  document.getElementById(
+    "timeframe"
+  ).value =
     t.timeframe || "M5";
 
-  document.getElementById("strategy").value =
+  document.getElementById(
+    "strategy"
+  ).value =
     t.strategy || "FOREX CORE";
 
-  document.getElementById("payoutPct").value =
+  document.getElementById(
+    "payoutPct"
+  ).value =
     t.payoutPct ?? 100;
 
-  document.getElementById("editTradeId").value = "";
+  document.getElementById(
+    "editTradeId"
+  ).value = "";
 
-  document.getElementById("tradeFormTitle").textContent =
+  document.getElementById(
+    "tradeFormTitle"
+  ).textContent =
     "Новая сделка";
 
-  document.getElementById("saveTradeBtn").textContent =
+  document.getElementById(
+    "saveTradeBtn"
+  ).textContent =
     "Сохранить сделку";
 
-  document.getElementById("cancelEditBtn").style.display =
+  document.getElementById(
+    "cancelEditBtn"
+  ).style.display =
     "none";
 
-  setSide(t.side || "");
-  setResult(t.result || "");
+  setSide(
+    t.side || ""
+  );
+
+  setResult(
+    t.result || ""
+  );
 
   showSection(
     "add",
-    document.querySelectorAll(".nav-btn")[1]
+    document.querySelectorAll(
+      ".nav-btn"
+    )[1]
   );
 }
 
@@ -1677,13 +2270,17 @@ function copyTrade(id){
 
 function deleteTrade(id){
 
-  if(!confirm("Удалить эту сделку?")){
+  if(!confirm(
+    "Удалить эту сделку?"
+  )){
     return;
   }
 
   trades =
     trades.filter(
-      t => String(t.id) !== String(id)
+      t =>
+        String(t.id) !==
+        String(id)
     );
 
   saveAll();
@@ -1695,9 +2292,13 @@ function deleteTrade(id){
    TRANSACTION MODAL
 ========================= */
 
-function openTransaction(type,id=null){
+function openTransaction(
+  type,
+  id=null
+){
 
-  const isEdit = id !== null;
+  const isEdit =
+    id !== null;
 
   let transaction = null;
 
@@ -1705,7 +2306,9 @@ function openTransaction(type,id=null){
 
     transaction =
       transactions.find(
-        t => String(t.id) === String(id)
+        t =>
+          String(t.id) ===
+          String(id)
       );
   }
 
@@ -1722,34 +2325,39 @@ function openTransaction(type,id=null){
   const date =
     transaction
       ? transaction.date
-      : new Date().toISOString().slice(0,10);
+      : new Date()
+          .toISOString()
+          .slice(0,10);
 
   openModal(`
 
     <div class="modal-head">
+
       <div class="modal-title">
-        ${isEdit ? "Редактирование" : ""} ${title}
+        ${isEdit ? "Редактирование" : ""}
+        ${title}
       </div>
 
-      <button class="close-btn"
-              onclick="closeModal()">
+      <button
+        class="close-btn"
+        onclick="closeModal()">
         ×
       </button>
+
     </div>
 
     <input
       type="hidden"
       id="transactionEditId"
-      value="${isEdit ? transaction.id : ""}"
-    >
+      value="${isEdit ? transaction.id : ""}">
 
     <input
       type="hidden"
       id="transactionType"
-      value="${type}"
-    >
+      value="${type}">
 
     <div class="form-group">
+
       <label class="form-label">
         Сумма
       </label>
@@ -1759,11 +2367,12 @@ function openTransaction(type,id=null){
         type="number"
         step="0.01"
         value="${amount}"
-        placeholder="100"
-      >
+        placeholder="100">
+
     </div>
 
     <div class="form-group">
+
       <label class="form-label">
         Дата
       </label>
@@ -1771,8 +2380,8 @@ function openTransaction(type,id=null){
       <input
         id="transactionDate"
         type="date"
-        value="${date}"
-      >
+        value="${date}">
+
     </div>
 
     <div class="modal-actions">
@@ -1790,6 +2399,7 @@ function openTransaction(type,id=null){
       </button>
 
     </div>
+
   `);
 }
 
@@ -1823,12 +2433,16 @@ function saveTransaction(){
     ).value;
 
   if(!amount || amount <= 0){
+
     alert("Укажи сумму");
+
     return;
   }
 
   if(!date){
+
     alert("Укажи дату");
+
     return;
   }
 
@@ -1836,7 +2450,9 @@ function saveTransaction(){
 
     const index =
       transactions.findIndex(
-        t => String(t.id) === String(id)
+        t =>
+          String(t.id) ===
+          String(id)
       );
 
     if(index !== -1){
@@ -1866,7 +2482,9 @@ function saveTransaction(){
   }
 
   saveAll();
+
   closeModal();
+
   renderAll();
 }
 
@@ -1877,16 +2495,21 @@ function saveTransaction(){
 
 function deleteTransaction(id){
 
-  if(!confirm("Удалить эту операцию?")){
+  if(!confirm(
+    "Удалить эту операцию?"
+  )){
     return;
   }
 
   transactions =
     transactions.filter(
-      t => String(t.id) !== String(id)
+      t =>
+        String(t.id) !==
+        String(id)
     );
 
   saveAll();
+
   renderAll();
 }
 
@@ -1905,8 +2528,9 @@ function editRemaining(){
         Изменить «Осталось»
       </div>
 
-      <button class="close-btn"
-              onclick="closeModal()">
+      <button
+        class="close-btn"
+        onclick="closeModal()">
         ×
       </button>
 
@@ -1922,8 +2546,7 @@ function editRemaining(){
         id="remainingInput"
         type="number"
         step="0.01"
-        value="${currentBalance().toFixed(2)}"
-      >
+        value="${currentBalance().toFixed(2)}">
 
     </div>
 
@@ -1942,6 +2565,7 @@ function editRemaining(){
       </button>
 
     </div>
+
   `);
 }
 
@@ -1960,15 +2584,20 @@ function saveRemaining(){
     );
 
   if(!Number.isFinite(value)){
+
     alert("Укажи сумму");
+
     return;
   }
 
   balanceAdjustment =
-    value - calculatedBalance();
+    value -
+    calculatedBalance();
 
   saveAll();
+
   closeModal();
+
   renderAll();
 }
 
@@ -1979,22 +2608,30 @@ function saveRemaining(){
 
 function openModal(html){
 
-  document.getElementById("modalContent")
-    .innerHTML = html;
+  document.getElementById(
+    "modalContent"
+  ).innerHTML = html;
 
-  document.getElementById("modalBg")
-    .classList.add("active");
+  document.getElementById(
+    "modalBg"
+  ).classList.add("active");
 }
+
 
 function closeModal(){
 
-  document.getElementById("modalBg")
-    .classList.remove("active");
+  document.getElementById(
+    "modalBg"
+  ).classList.remove("active");
 }
+
 
 function modalOutside(e){
 
-  if(e.target.id === "modalBg"){
+  if(
+    e.target.id ===
+    "modalBg"
+  ){
     closeModal();
   }
 }
@@ -2004,12 +2641,18 @@ function modalOutside(e){
    TRADE FILTER
 ========================= */
 
-function setTradeFilter(filter,btn){
+function setTradeFilter(
+  filter,
+  btn
+){
 
   tradeFilter = filter;
 
-  document.querySelectorAll(".filter")
-    .forEach(x => x.classList.remove("active"));
+  document.querySelectorAll(
+    ".filter"
+  ).forEach(x =>
+    x.classList.remove("active")
+  );
 
   btn.classList.add("active");
 
@@ -2023,17 +2666,24 @@ function setTradeFilter(filter,btn){
 
 function tradeCard(t){
 
-  const pnl = pnlOf(t);
+  const pnl =
+    pnlOf(t);
 
   const sideClass =
     t.side === "BUY"
       ? "buy"
       : "sell";
 
-  const resultClass =
-    t.result === "WIN"
-      ? "win"
-      : "loss";
+  let resultClass =
+    "loss";
+
+  if(t.result === "WIN"){
+    resultClass = "win";
+  }
+
+  if(t.result === "WAIT"){
+    resultClass = "wait";
+  }
 
   const date =
     new Date(t.date)
@@ -2046,6 +2696,33 @@ function tradeCard(t){
           minute:"2-digit"
         }
       );
+
+  let resultText =
+    "";
+
+  if(t.result === "WAIT"){
+
+    resultText =
+      "ОЖИДАНИЕ";
+
+  }else{
+
+    resultText =
+      pnl >= 0
+        ? "+" + money(pnl)
+        : money(pnl);
+  }
+
+  let resultColor =
+    "yellow-text";
+
+  if(t.result === "WIN"){
+    resultColor = "green-text";
+  }
+
+  if(t.result === "LOSS"){
+    resultColor = "red-text";
+  }
 
   return `
 
@@ -2060,48 +2737,99 @@ function tradeCard(t){
         <div>
 
           <span class="badge ${sideClass}">
-            ${t.side}
+            ${escapeHtml(t.side)}
           </span>
 
           <span class="badge ${resultClass}">
-            ${t.result}
+            ${escapeHtml(t.result)}
           </span>
 
         </div>
 
       </div>
 
-      <div class="trade-row">
-        <span>Сумма</span>
-        <b>${money(t.amount)}</b>
-      </div>
 
       <div class="trade-row">
-        <span>Результат</span>
-        <b class="${pnl >= 0 ? "green-text" : "red-text"}">
-          ${pnl >= 0 ? "+" : ""}${money(pnl)}
+
+        <span>
+          Сумма
+        </span>
+
+        <b>
+          ${money(t.amount)}
         </b>
+
       </div>
 
-      <div class="trade-row">
-        <span>Экспирация</span>
-        <b>${t.expiry || 0} мин</b>
-      </div>
 
       <div class="trade-row">
-        <span>Таймфрейм</span>
-        <b>${escapeHtml(t.timeframe || "M5")}</b>
+
+        <span>
+          Результат
+        </span>
+
+        <b class="${resultColor}">
+          ${resultText}
+        </b>
+
       </div>
 
-      <div class="trade-row">
-        <span>Стратегия</span>
-        <b>${escapeHtml(t.strategy || "")}</b>
-      </div>
 
       <div class="trade-row">
-        <span>Дата</span>
-        <b>${date}</b>
+
+        <span>
+          Экспирация
+        </span>
+
+        <b>
+          ${t.expiry || 0} мин
+        </b>
+
       </div>
+
+
+      <div class="trade-row">
+
+        <span>
+          Таймфрейм
+        </span>
+
+        <b>
+          ${escapeHtml(
+            t.timeframe || "M5"
+          )}
+        </b>
+
+      </div>
+
+
+      <div class="trade-row">
+
+        <span>
+          Стратегия
+        </span>
+
+        <b>
+          ${escapeHtml(
+            t.strategy || ""
+          )}
+        </b>
+
+      </div>
+
+
+      <div class="trade-row">
+
+        <span>
+          Дата
+        </span>
+
+        <b>
+          ${date}
+        </b>
+
+      </div>
+
 
       <div class="trade-actions">
 
@@ -2126,6 +2854,7 @@ function tradeCard(t){
       </div>
 
     </div>
+
   `;
 }
 
@@ -2137,16 +2866,23 @@ function tradeCard(t){
 function renderJournal(){
 
   const box =
-    document.getElementById("journalList");
+    document.getElementById(
+      "journalList"
+    );
 
-  let list = [...trades];
+  let list =
+    [...trades];
 
-  if(tradeFilter !== "ALL"){
+  if(
+    tradeFilter !==
+    "ALL"
+  ){
 
     list =
-      list.filter(t =>
-        t.result === tradeFilter ||
-        t.side === tradeFilter
+      list.filter(
+        t =>
+          t.result === tradeFilter ||
+          t.side === tradeFilter
       );
   }
 
@@ -2161,7 +2897,9 @@ function renderJournal(){
   }
 
   box.innerHTML =
-    list.map(tradeCard).join("");
+    list
+      .map(tradeCard)
+      .join("");
 }
 
 
@@ -2190,8 +2928,11 @@ function transactionCard(t){
       : "red-text";
 
   const date =
-    new Date(t.date)
-      .toLocaleDateString("ru-RU");
+    new Date(
+      t.date
+    ).toLocaleDateString(
+      "ru-RU"
+    );
 
   return `
 
@@ -2226,13 +2967,16 @@ function transactionCard(t){
 
         <button
           class="delete-btn"
-          onclick="deleteTransaction('${t.id}')">
+          onclick="deleteTransaction(
+            '${t.id}'
+          )">
           🗑️
         </button>
 
       </div>
 
     </div>
+
   `;
 }
 
@@ -2295,35 +3039,6 @@ function renderHomeTransactions(){
 
 
 /* =========================
-   HOME RECENT
-========================= */
-
-function renderRecentTrades(){
-
-  const box =
-    document.getElementById(
-      "recentTrades"
-    );
-
-  const list =
-    trades.slice(0,5);
-
-  if(!list.length){
-
-    box.innerHTML =
-      `<div class="empty">
-        Сделок пока нет
-      </div>`;
-
-    return;
-  }
-
-  box.innerHTML =
-    list.map(tradeCard).join("");
-}
-
-
-/* =========================
    TODAY
 ========================= */
 
@@ -2335,21 +3050,29 @@ function renderToday(){
       .slice(0,10);
 
   const list =
-    trades.filter(t =>
-      String(t.date).slice(0,10) === today
+    trades.filter(
+      t =>
+        String(t.date)
+          .slice(0,10) ===
+        today
     );
 
   const pnl =
     list.reduce(
-      (s,t) => s + pnlOf(t),
+      (s,t) =>
+        s + pnlOf(t),
       0
     );
 
-  document.getElementById("todayTrades")
-    .textContent = list.length;
+  document.getElementById(
+    "todayTrades"
+  ).textContent =
+    list.length;
 
   const pnlEl =
-    document.getElementById("todayPnl");
+    document.getElementById(
+      "todayPnl"
+    );
 
   pnlEl.textContent =
     (pnl >= 0 ? "+" : "") +
@@ -2357,7 +3080,11 @@ function renderToday(){
 
   pnlEl.className =
     "stat-value " +
-    (pnl >= 0 ? "green-text" : "red-text");
+    (
+      pnl >= 0
+        ? "green-text"
+        : "red-text"
+    );
 }
 
 
@@ -2367,12 +3094,15 @@ function renderToday(){
 
 function renderHome(){
 
-  document.getElementById("homeBalance")
-    .textContent =
-      money(currentBalance());
+  document.getElementById(
+    "homeBalance"
+  ).textContent =
+    money(
+      currentBalance()
+    );
 
   renderToday();
-  renderRecentTrades();
+
   renderHomeTransactions();
 }
 
@@ -2383,54 +3113,40 @@ function renderHome(){
 
 function renderRemaining(){
 
-  let card =
+  const container =
     document.getElementById(
       "remainingCard"
     );
 
-  if(card) return;
+  if(!container) return;
 
-  const balanceCard =
-    document.querySelector(
-      "#home .balance-card"
-    );
+  container.innerHTML = `
 
-  const div =
-    document.createElement("div");
+    <div class="card remaining-card">
 
-  div.id = "remainingCard";
+      <div class="remaining-main">
 
-  div.className =
-    "card remaining-card";
+        <div class="remaining-title">
+          Осталось
+        </div>
 
-  div.innerHTML = `
+        <div
+          id="remainingValue"
+          class="remaining-value">
+          ${money(currentBalance())}
+        </div>
 
-    <div class="remaining-main">
-
-      <div class="remaining-title">
-        Осталось
       </div>
 
-      <div
-        id="remainingValue"
-        class="remaining-value">
-        ${money(currentBalance())}
-      </div>
+      <button
+        class="small-btn"
+        onclick="editRemaining()">
+        ✏️ Изменить
+      </button>
 
     </div>
 
-    <button
-      class="small-btn"
-      onclick="editRemaining()">
-      ✏️ Изменить
-    </button>
   `;
-
-  balanceCard.after(div);
-
-  document.getElementById("remainingValue")
-    .textContent =
-      money(currentBalance());
 }
 
 
@@ -2438,10 +3154,90 @@ function renderRemaining(){
    CALENDAR
 ========================= */
 
+function dateKeyFromTrade(t){
+
+  return String(
+    t.date
+  ).slice(0,10);
+}
+
+
+function dateKeyFromTransaction(t){
+
+  return String(
+    t.date
+  ).slice(0,10);
+}
+
+
+function getCalendarEvents(key){
+
+  const events = [];
+
+  trades.forEach(t => {
+
+    if(
+      dateKeyFromTrade(t) ===
+      key
+    ){
+
+      events.push({
+        type:"trade",
+        data:t
+      });
+
+    }
+
+  });
+
+  transactions.forEach(t => {
+
+    if(
+      dateKeyFromTransaction(t) ===
+      key
+    ){
+
+      events.push({
+        type:"transaction",
+        data:t
+      });
+
+    }
+
+  });
+
+  events.sort(
+    (a,b) => {
+
+      const da =
+        a.type === "trade"
+          ? new Date(a.data.date)
+          : new Date(
+              a.data.date +
+              "T00:00:00"
+            );
+
+      const db =
+        b.type === "trade"
+          ? new Date(b.data.date)
+          : new Date(
+              b.data.date +
+              "T00:00:00"
+            );
+
+      return db - da;
+    }
+  );
+
+  return events;
+}
+
+
 function changeMonth(delta){
 
   calendarDate.setMonth(
-    calendarDate.getMonth() + delta
+    calendarDate.getMonth() +
+    delta
   );
 
   renderCalendar();
@@ -2457,6 +3253,7 @@ function renderCalendar(){
     calendarDate.getMonth();
 
   const monthNames = [
+
     "Январь",
     "Февраль",
     "Март",
@@ -2469,11 +3266,13 @@ function renderCalendar(){
     "Октябрь",
     "Ноябрь",
     "Декабрь"
+
   ];
 
-  document.getElementById("monthTitle")
-    .textContent =
-      `${monthNames[month]} ${year}`;
+  document.getElementById(
+    "monthTitle"
+  ).textContent =
+    `${monthNames[month]} ${year}`;
 
   const grid =
     document.getElementById(
@@ -2483,26 +3282,39 @@ function renderCalendar(){
   grid.innerHTML = "";
 
   const first =
-    new Date(year,month,1);
+    new Date(
+      year,
+      month,
+      1
+    );
 
   let start =
     first.getDay();
 
   start =
-    start === 0 ? 6 : start - 1;
+    start === 0
+      ? 6
+      : start - 1;
 
   const days =
-    new Date(year,month + 1,0)
-      .getDate();
+    new Date(
+      year,
+      month + 1,
+      0
+    ).getDate();
 
   const prevDays =
-    new Date(year,month,0)
-      .getDate();
+    new Date(
+      year,
+      month,
+      0
+    ).getDate();
 
   const today =
     new Date();
 
   const pnlByDay = {};
+  const eventCountByDay = {};
 
   trades.forEach(t => {
 
@@ -2520,68 +3332,179 @@ function renderCalendar(){
       pnlByDay[key] =
         (pnlByDay[key] || 0) +
         pnlOf(t);
+
+      eventCountByDay[key] =
+        (eventCountByDay[key] || 0) +
+        1;
     }
+
   });
 
-  for(let i=0;i<42;i++){
+
+  transactions.forEach(t => {
+
+    const parts =
+      String(t.date)
+        .split("-");
+
+    if(parts.length !== 3){
+      return;
+    }
+
+    const y =
+      Number(parts[0]);
+
+    const m =
+      Number(parts[1]) - 1;
+
+    const d =
+      Number(parts[2]);
+
+    if(
+      y === year &&
+      m === month
+    ){
+
+      eventCountByDay[d] =
+        (eventCountByDay[d] || 0) +
+        1;
+    }
+
+  });
+
+
+  for(
+    let i = 0;
+    i < 42;
+    i++
+  ){
 
     const cell =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
-    cell.className = "day";
+    cell.className =
+      "day";
 
     let dayNum;
 
     if(i < start){
 
       dayNum =
-        prevDays - start + i + 1;
+        prevDays -
+        start +
+        i +
+        1;
 
-      cell.classList.add("muted-day");
+      cell.classList.add(
+        "muted-day"
+      );
 
-    }else if(i >= start + days){
+    }else if(
+      i >=
+      start + days
+    ){
 
       dayNum =
-        i - start - days + 1;
+        i -
+        start -
+        days +
+        1;
 
-      cell.classList.add("muted-day");
+      cell.classList.add(
+        "muted-day"
+      );
 
     }else{
 
       dayNum =
-        i - start + 1;
+        i -
+        start +
+        1;
 
       const pnl =
-        pnlByDay[dayNum] || 0;
+        pnlByDay[dayNum] ||
+        0;
+
+      const eventCount =
+        eventCountByDay[dayNum] ||
+        0;
 
       if(pnl > 0){
-        cell.classList.add("win-day");
+        cell.classList.add(
+          "win-day"
+        );
       }
 
       if(pnl < 0){
-        cell.classList.add("loss-day");
+        cell.classList.add(
+          "loss-day"
+        );
       }
 
       if(
-        today.getFullYear() === year &&
-        today.getMonth() === month &&
-        today.getDate() === dayNum
+        today.getFullYear() ===
+          year &&
+        today.getMonth() ===
+          month &&
+        today.getDate() ===
+          dayNum
       ){
-        cell.classList.add("today");
+
+        cell.classList.add(
+          "today"
+        );
+      }
+
+      if(eventCount > 0){
+
+        cell.classList.add(
+          "has-events"
+        );
+
+      }
+
+      const key =
+        `${year}-${String(month+1).padStart(2,"0")}-${String(dayNum).padStart(2,"0")}`;
+
+      cell.onclick =
+        () =>
+          openCalendarDay(key);
+
+      let eventIcon = "";
+
+      if(eventCount > 0){
+
+        eventIcon =
+          `<div class="day-events">•</div>`;
+
       }
 
       cell.innerHTML = `
+
+        ${eventIcon}
+
         <div class="day-num">
           ${dayNum}
         </div>
 
         ${
           pnl !== 0
-          ? `<div class="day-pnl ${pnl>0 ? "green-text":"red-text"}">
-               ${pnl>0 ? "+":""}${money(pnl)}
-             </div>`
-          : ""
+            ? `
+              <div
+                class="day-pnl ${
+                  pnl > 0
+                    ? "green-text"
+                    : "red-text"
+                }">
+                ${pnl > 0 ? "+" : ""}
+                ${money(pnl)}
+              </div>
+            `
+            : ""
         }
+
       `;
 
       grid.appendChild(cell);
@@ -2590,12 +3513,337 @@ function renderCalendar(){
     }
 
     cell.innerHTML =
-      `<div class="day-num">${dayNum}</div>`;
+      `<div class="day-num">
+        ${dayNum}
+      </div>`;
 
     grid.appendChild(cell);
   }
 
   renderBestDays();
+}
+
+
+/* =========================
+   CALENDAR DAY DETAILS
+========================= */
+
+function openCalendarDay(key){
+
+  const events =
+    getCalendarEvents(key);
+
+  const formatted =
+    formatDate(key);
+
+  if(!events.length){
+
+    openModal(`
+
+      <div class="modal-head">
+
+        <div class="modal-title">
+          ${formatted}
+        </div>
+
+        <button
+          class="close-btn"
+          onclick="closeModal()">
+          ×
+        </button>
+
+      </div>
+
+      <div class="empty">
+        В этот день событий нет
+      </div>
+
+    `);
+
+    return;
+  }
+
+
+  let tradePnl = 0;
+  let deposits = 0;
+  let withdrawals = 0;
+
+  events.forEach(e => {
+
+    if(e.type === "trade"){
+
+      tradePnl +=
+        pnlOf(e.data);
+
+    }
+
+    if(
+      e.type ===
+      "transaction"
+    ){
+
+      if(
+        e.data.type ===
+        "deposit"
+      ){
+
+        deposits +=
+          Number(
+            e.data.amount || 0
+          );
+
+      }
+
+      if(
+        e.data.type ===
+        "withdraw"
+      ){
+
+        withdrawals +=
+          Number(
+            e.data.amount || 0
+          );
+
+      }
+
+    }
+
+  });
+
+
+  let html = `
+
+    <div class="modal-head">
+
+      <div class="modal-title">
+        ${formatted}
+      </div>
+
+      <button
+        class="close-btn"
+        onclick="closeModal()">
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="day-summary">
+
+      <div class="trade-row">
+
+        <span>
+          Сделки
+        </span>
+
+        <b class="${
+          tradePnl >= 0
+            ? "green-text"
+            : "red-text"
+        }">
+
+          ${tradePnl >= 0 ? "+" : ""}
+          ${money(tradePnl)}
+
+        </b>
+
+      </div>
+
+
+      ${
+        deposits > 0
+          ? `
+            <div class="trade-row">
+
+              <span>
+                Пополнено
+              </span>
+
+              <b class="green-text">
+                +${money(deposits)}
+              </b>
+
+            </div>
+          `
+          : ""
+      }
+
+
+      ${
+        withdrawals > 0
+          ? `
+            <div class="trade-row">
+
+              <span>
+                Выведено
+              </span>
+
+              <b class="red-text">
+                -${money(withdrawals)}
+              </b>
+
+            </div>
+          `
+          : ""
+      }
+
+    </div>
+
+  `;
+
+
+  events.forEach(e => {
+
+    if(e.type === "trade"){
+
+      const t =
+        e.data;
+
+      const pnl =
+        pnlOf(t);
+
+      let resultColor =
+        "yellow-text";
+
+      if(
+        t.result ===
+        "WIN"
+      ){
+
+        resultColor =
+          "green-text";
+
+      }else if(
+        t.result ===
+        "LOSS"
+      ){
+
+        resultColor =
+          "red-text";
+      }
+
+      const resultValue =
+        t.result ===
+        "WAIT"
+          ? "ОЖИДАНИЕ"
+          : (
+              pnl >= 0
+                ? "+" + money(pnl)
+                : money(pnl)
+            );
+
+      html += `
+
+        <div class="day-detail">
+
+          <div class="day-detail-head">
+
+            <div class="day-detail-title">
+              ${
+                t.side === "BUY"
+                  ? "🟢"
+                  : "🔴"
+              }
+              ${escapeHtml(t.pair)}
+              ${escapeHtml(t.side)}
+            </div>
+
+            <b class="${resultColor}">
+              ${resultValue}
+            </b>
+
+          </div>
+
+          <div class="day-detail-sub">
+
+            ${escapeHtml(
+              t.result || ""
+            )}
+
+            •
+            ${money(t.amount)}
+            •
+            ${t.timeframe || "M5"}
+
+          </div>
+
+        </div>
+
+      `;
+
+    }
+
+
+    if(
+      e.type ===
+      "transaction"
+    ){
+
+      const t =
+        e.data;
+
+      if(
+        t.type ===
+        "deposit"
+      ){
+
+        html += `
+
+          <div class="day-detail">
+
+            <div class="day-detail-head">
+
+              <div class="day-detail-title">
+                💰 Пополнение
+              </div>
+
+              <b class="green-text">
+                +${money(t.amount)}
+              </b>
+
+            </div>
+
+            <div class="day-detail-sub">
+              Финансовая операция
+            </div>
+
+          </div>
+
+        `;
+
+      }else{
+
+        html += `
+
+          <div class="day-detail">
+
+            <div class="day-detail-head">
+
+              <div class="day-detail-title">
+                💸 Вывод
+              </div>
+
+              <b class="red-text">
+                -${money(t.amount)}
+              </b>
+
+            </div>
+
+            <div class="day-detail-sub">
+              Финансовая операция
+            </div>
+
+          </div>
+
+        `;
+      }
+
+    }
+
+  });
+
+
+  openModal(html);
 }
 
 
@@ -2615,7 +3863,8 @@ function renderBestDays(){
   trades.forEach(t => {
 
     const key =
-      String(t.date).slice(0,10);
+      String(t.date)
+        .slice(0,10);
 
     days[key] =
       (days[key] || 0) +
@@ -2623,10 +3872,15 @@ function renderBestDays(){
 
   });
 
+
   const arr =
     Object.entries(days)
-      .sort((a,b)=>b[1]-a[1])
+      .sort(
+        (a,b) =>
+          b[1] - a[1]
+      )
       .slice(0,5);
+
 
   if(!arr.length){
 
@@ -2638,18 +3892,32 @@ function renderBestDays(){
     return;
   }
 
+
   box.innerHTML =
-    arr.map(([date,pnl]) => `
+    arr.map(
+      ([date,pnl]) => `
 
-      <div class="trade-row">
-        <span>${formatDate(date)}</span>
+        <div class="trade-row">
 
-        <b class="${pnl>=0 ? "green-text":"red-text"}">
-          ${pnl>=0 ? "+":""}${money(pnl)}
-        </b>
-      </div>
+          <span>
+            ${formatDate(date)}
+          </span>
 
-    `).join("");
+          <b class="${
+            pnl >= 0
+              ? "green-text"
+              : "red-text"
+          }">
+
+            ${pnl >= 0 ? "+" : ""}
+            ${money(pnl)}
+
+          </b>
+
+        </div>
+
+      `
+    ).join("");
 }
 
 
@@ -2664,56 +3932,80 @@ function renderStats(){
 
   const wins =
     trades.filter(
-      t => t.result === "WIN"
+      t =>
+        t.result ===
+        "WIN"
     ).length;
 
   const losses =
     trades.filter(
-      t => t.result === "LOSS"
+      t =>
+        t.result ===
+        "LOSS"
     ).length;
+
 
   const grossProfit =
     trades
-      .filter(t=>pnlOf(t)>0)
+      .filter(
+        t =>
+          pnlOf(t) > 0
+      )
       .reduce(
-        (s,t)=>s+pnlOf(t),
+        (s,t) =>
+          s + pnlOf(t),
         0
       );
+
 
   const grossLoss =
     Math.abs(
       trades
-        .filter(t=>pnlOf(t)<0)
+        .filter(
+          t =>
+            pnlOf(t) < 0
+        )
         .reduce(
-          (s,t)=>s+pnlOf(t),
+          (s,t) =>
+            s + pnlOf(t),
           0
         )
     );
 
+
   const pf =
     grossLoss > 0
-      ? grossProfit / grossLoss
+      ? grossProfit /
+        grossLoss
       : grossProfit > 0
         ? Infinity
         : 0;
 
+
   const pnl =
     trades.reduce(
-      (s,t)=>s+pnlOf(t),
+      (s,t) =>
+        s + pnlOf(t),
       0
     );
+
 
   let streak = 0;
   let current = 0;
 
+
   [...trades]
     .sort(
-      (a,b)=>
-        new Date(a.date)-new Date(b.date)
+      (a,b) =>
+        new Date(a.date) -
+        new Date(b.date)
     )
-    .forEach(t=>{
+    .forEach(t => {
 
-      if(t.result === "WIN"){
+      if(
+        t.result ===
+        "WIN"
+      ){
 
         current++;
 
@@ -2723,7 +4015,10 @@ function renderStats(){
             current
           );
 
-      }else{
+      }else if(
+        t.result ===
+        "LOSS"
+      ){
 
         current = 0;
 
@@ -2731,23 +4026,34 @@ function renderStats(){
 
     });
 
-  document.getElementById("statTotal")
-    .textContent = total;
 
-  document.getElementById("statWins")
-    .textContent = wins;
+  document.getElementById(
+    "statTotal"
+  ).textContent =
+    total;
 
-  document.getElementById("statLosses")
-    .textContent = losses;
+  document.getElementById(
+    "statWins"
+  ).textContent =
+    wins;
 
-  document.getElementById("statPF")
-    .textContent =
-      pf === Infinity
-        ? "∞"
-        : pf.toFixed(2);
+  document.getElementById(
+    "statLosses"
+  ).textContent =
+    losses;
+
+  document.getElementById(
+    "statPF"
+  ).textContent =
+    pf === Infinity
+      ? "∞"
+      : pf.toFixed(2);
+
 
   const pnlEl =
-    document.getElementById("statPnl");
+    document.getElementById(
+      "statPnl"
+    );
 
   pnlEl.textContent =
     (pnl >= 0 ? "+" : "") +
@@ -2755,12 +4061,18 @@ function renderStats(){
 
   pnlEl.className =
     "stat-value " +
-    (pnl >= 0
-      ? "green-text"
-      : "red-text");
+    (
+      pnl >= 0
+        ? "green-text"
+        : "red-text"
+    );
 
-  document.getElementById("statStreak")
-    .textContent = streak;
+
+  document.getElementById(
+    "statStreak"
+  ).textContent =
+    streak;
+
 
   drawBalanceChart();
 }
@@ -2783,12 +4095,15 @@ function drawBalanceChart(){
     canvas.getContext("2d");
 
   const width =
-    canvas.clientWidth || 500;
+    canvas.clientWidth ||
+    500;
 
-  const height = 210;
+  const height =
+    210;
 
   const ratio =
-    window.devicePixelRatio || 1;
+    window.devicePixelRatio ||
+    1;
 
   canvas.width =
     width * ratio;
@@ -2799,7 +4114,14 @@ function drawBalanceChart(){
   canvas.style.height =
     height + "px";
 
-  ctx.scale(ratio,ratio);
+  ctx.setTransform(
+    ratio,
+    0,
+    0,
+    ratio,
+    0,
+    0
+  );
 
   ctx.clearRect(
     0,
@@ -2808,66 +4130,116 @@ function drawBalanceChart(){
     height
   );
 
+
   const values = [];
 
   const now =
     new Date();
 
-  for(let i=29;i>=0;i--){
+
+  for(
+    let i = 29;
+    i >= 0;
+    i--
+  ){
 
     const d =
       new Date(now);
 
-    d.setHours(23,59,59,999);
-    d.setDate(
-      now.getDate() - i
+    d.setHours(
+      23,
+      59,
+      59,
+      999
     );
 
+    d.setDate(
+      now.getDate() -
+      i
+    );
+
+
     const key =
-      d.toISOString().slice(0,10);
+      d.toISOString()
+        .slice(0,10);
+
 
     let balance =
       initialBalance;
 
-    transactions.forEach(t=>{
 
-      if(t.date <= key){
+    transactions.forEach(t => {
 
-        if(t.type === "deposit"){
-          balance += Number(t.amount || 0);
+      if(
+        t.date <=
+        key
+      ){
+
+        if(
+          t.type ===
+          "deposit"
+        ){
+
+          balance +=
+            Number(
+              t.amount || 0
+            );
+
         }
 
-        if(t.type === "withdraw"){
-          balance -= Number(t.amount || 0);
+        if(
+          t.type ===
+          "withdraw"
+        ){
+
+          balance -=
+            Number(
+              t.amount || 0
+            );
+
         }
 
       }
 
     });
 
-    trades.forEach(t=>{
+
+    trades.forEach(t => {
 
       const td =
-        String(t.date).slice(0,10);
+        String(t.date)
+          .slice(0,10);
 
       if(td <= key){
-        balance += pnlOf(t);
+
+        balance +=
+          pnlOf(t);
+
       }
 
     });
 
-    balance += balanceAdjustment;
+
+    balance +=
+      balanceAdjustment;
+
 
     values.push({
       key,
       value:balance
     });
+
   }
+
 
   if(!values.length) return;
 
+
   const nums =
-    values.map(x=>x.value);
+    values.map(
+      x => x.value
+    );
+
 
   let min =
     Math.min(...nums);
@@ -2875,66 +4247,133 @@ function drawBalanceChart(){
   let max =
     Math.max(...nums);
 
+
   if(min === max){
+
     min -= 1;
     max += 1;
+
   }
+
 
   const padX = 10;
   const padY = 15;
 
+
   ctx.beginPath();
 
-  values.forEach((item,i)=>{
 
-    const x =
-      padX +
-      i *
-      ((width - padX*2) /
-      Math.max(1,values.length-1));
+  values.forEach(
+    (item,i) => {
 
-    const y =
-      height -
-      padY -
-      ((item.value-min)/(max-min)) *
-      (height-padY*2);
+      const x =
+        padX +
+        i *
+        (
+          (width -
+           padX * 2) /
+          Math.max(
+            1,
+            values.length - 1
+          )
+        );
 
-    if(i===0){
-      ctx.moveTo(x,y);
-    }else{
-      ctx.lineTo(x,y);
+
+      const y =
+        height -
+        padY -
+        (
+          (item.value - min) /
+          (max - min)
+        ) *
+        (
+          height -
+          padY * 2
+        );
+
+
+      if(i === 0){
+
+        ctx.moveTo(
+          x,
+          y
+        );
+
+      }else{
+
+        ctx.lineTo(
+          x,
+          y
+        );
+
+      }
+
     }
+  );
 
-  });
 
-  ctx.strokeStyle = "#4e7cff";
+  ctx.strokeStyle =
+    "#4e7cff";
+
   ctx.lineWidth = 2;
+
   ctx.stroke();
 
-  values.forEach((item,i)=>{
 
-    if(i !== values.length-1){
-      return;
+  values.forEach(
+    (item,i) => {
+
+      if(
+        i !==
+        values.length - 1
+      ){
+        return;
+      }
+
+
+      const x =
+        padX +
+        i *
+        (
+          (width -
+           padX * 2) /
+          Math.max(
+            1,
+            values.length - 1
+          )
+        );
+
+
+      const y =
+        height -
+        padY -
+        (
+          (item.value - min) /
+          (max - min)
+        ) *
+        (
+          height -
+          padY * 2
+        );
+
+
+      ctx.beginPath();
+
+      ctx.arc(
+        x,
+        y,
+        4,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fillStyle =
+        "#4e7cff";
+
+      ctx.fill();
+
     }
-
-    const x =
-      padX +
-      i *
-      ((width - padX*2) /
-      Math.max(1,values.length-1));
-
-    const y =
-      height -
-      padY -
-      ((item.value-min)/(max-min)) *
-      (height-padY*2);
-
-    ctx.beginPath();
-    ctx.arc(x,y,4,0,Math.PI*2);
-    ctx.fillStyle = "#4e7cff";
-    ctx.fill();
-
-  });
+  );
 }
 
 
@@ -2960,9 +4399,11 @@ function openSettings(){
 
     </div>
 
+
     <div class="settings-row">
 
       <div>
+
         <div class="settings-label">
           Валюта
         </div>
@@ -2970,27 +4411,51 @@ function openSettings(){
         <div class="settings-sub">
           Валюта отображения журнала
         </div>
+
       </div>
+
 
       <select
         id="settingsCurrency"
         style="width:110px">
 
-        <option value="USD">USD</option>
-        <option value="EUR">EUR</option>
-        <option value="RUB">RUB</option>
-        <option value="GBP">GBP</option>
-        <option value="CHF">CHF</option>
-        <option value="JPY">JPY</option>
-        <option value="USDT">USDT</option>
+        <option value="USD">
+          USD
+        </option>
+
+        <option value="EUR">
+          EUR
+        </option>
+
+        <option value="RUB">
+          RUB
+        </option>
+
+        <option value="GBP">
+          GBP
+        </option>
+
+        <option value="CHF">
+          CHF
+        </option>
+
+        <option value="JPY">
+          JPY
+        </option>
+
+        <option value="USDT">
+          USDT
+        </option>
 
       </select>
 
     </div>
 
+
     <div class="settings-row">
 
       <div>
+
         <div class="settings-label">
           Начальный баланс
         </div>
@@ -2998,17 +4463,19 @@ function openSettings(){
         <div class="settings-sub">
           Баланс до операций и сделок
         </div>
+
       </div>
+
 
       <input
         id="settingsInitial"
         type="number"
         step="0.01"
         value="${initialBalance}"
-        style="width:130px"
-      >
+        style="width:130px">
 
     </div>
+
 
     <div class="modal-actions">
 
@@ -3026,6 +4493,7 @@ function openSettings(){
 
     </div>
 
+
     <div style="margin-top:15px">
 
       <button
@@ -3034,6 +4502,7 @@ function openSettings(){
         📤 Экспорт данных
       </button>
 
+
       <button
         class="btn gray full"
         onclick="document.getElementById('importFile').click()"
@@ -3041,21 +4510,23 @@ function openSettings(){
         📥 Импорт данных
       </button>
 
+
       <input
         id="importFile"
         type="file"
         accept=".json"
         style="display:none"
-        onchange="importData(event)"
-      >
+        onchange="importData(event)">
 
     </div>
 
   `);
 
+
   document.getElementById(
     "settingsCurrency"
-  ).value = currency;
+  ).value =
+    currency;
 }
 
 
@@ -3068,10 +4539,12 @@ function saveSettings(){
   const target =
     currentBalance();
 
+
   currency =
     document.getElementById(
       "settingsCurrency"
     ).value;
+
 
   initialBalance =
     Number(
@@ -3080,11 +4553,16 @@ function saveSettings(){
       ).value
     ) || 0;
 
+
   balanceAdjustment =
-    target - calculatedBalance();
+    target -
+    calculatedBalance();
+
 
   saveAll();
+
   closeModal();
+
   renderAll();
 }
 
@@ -3111,6 +4589,7 @@ function exportData(){
 
   };
 
+
   const blob =
     new Blob(
       [
@@ -3121,15 +4600,22 @@ function exportData(){
         )
       ],
       {
-        type:"application/json"
+        type:
+          "application/json"
       }
     );
 
+
   const url =
-    URL.createObjectURL(blob);
+    URL.createObjectURL(
+      blob
+    );
+
 
   const a =
-    document.createElement("a");
+    document.createElement(
+      "a"
+    );
 
   a.href = url;
 
@@ -3138,7 +4624,9 @@ function exportData(){
 
   a.click();
 
-  URL.revokeObjectURL(url);
+  URL.revokeObjectURL(
+    url
+  );
 }
 
 
@@ -3153,82 +4641,125 @@ function importData(event){
 
   if(!file) return;
 
+
   const reader =
     new FileReader();
 
-  reader.onload = function(){
 
-    try{
+  reader.onload =
+    function(){
 
-      const data =
-        JSON.parse(
-          reader.result
+      try{
+
+        const data =
+          JSON.parse(
+            reader.result
+          );
+
+
+        trades =
+          Array.isArray(
+            data.trades
+          )
+            ? data.trades
+            : [];
+
+
+        transactions =
+          Array.isArray(
+            data.transactions
+          )
+            ? data.transactions
+            : [];
+
+
+        currency =
+          data.currency ||
+          "USD";
+
+
+        initialBalance =
+          Number(
+            data.initialBalance ||
+            0
+          );
+
+
+        balanceAdjustment =
+          Number(
+            data.balanceAdjustment ||
+            0
+          );
+
+
+        recentPairs =
+          Array.isArray(
+            data.recentPairs
+          )
+            ? data.recentPairs
+            : [];
+
+
+        saveAll();
+
+        closeModal();
+
+        renderAll();
+
+        alert(
+          "Данные успешно импортированы"
         );
 
-      trades =
-        Array.isArray(data.trades)
-          ? data.trades
-          : [];
 
-      transactions =
-        Array.isArray(data.transactions)
-          ? data.transactions
-          : [];
+      }catch(e){
 
-      currency =
-        data.currency || "USD";
-
-      initialBalance =
-        Number(data.initialBalance || 0);
-
-      balanceAdjustment =
-        Number(
-          data.balanceAdjustment || 0
+        alert(
+          "Ошибка импорта файла"
         );
 
-      recentPairs =
-        Array.isArray(data.recentPairs)
-          ? data.recentPairs
-          : [];
+      }
 
-      saveAll();
-      closeModal();
-      renderAll();
+    };
 
-      alert("Данные успешно импортированы");
-
-    }catch(e){
-
-      alert("Ошибка импорта файла");
-
-    }
-
-  };
 
   reader.readAsText(file);
 }
 
 
 /* =========================
-   NEWS
+   INVESTING.COM
 ========================= */
 
-/*
-  NFP — прямое событие Investing.com.
-  Не общий экономический календарь.
-*/
+function openInvestingEvent(type){
 
-function openInvestingEvent(){
+  const urls = {
 
-  window.location.href =
-    "https://www.investing.com/economic-calendar/nonfarm-payrolls-227";
-}
+    NFP:
+      "https://www.investing.com/economic-calendar/nonfarm-payrolls-227",
+
+    CPI:
+      "https://www.investing.com/economic-calendar/cpi-733",
+
+    GDP:
+      "https://www.investing.com/economic-calendar/gdp-375",
+
+    FED:
+      "https://www.investing.com/economic-calendar/fed-interest-rate-decision-168"
+
+  };
 
 
-function openInvestingCalendar(){
+  const url =
+    urls[type];
 
-  window.location.href =
-    "https://www.investing.com/economic-calendar/";
+
+  if(url){
+
+    window.location.href =
+      url;
+
+  }
+
 }
 
 
@@ -3241,8 +4772,14 @@ function formatDate(date){
   const d =
     new Date(date);
 
-  if(Number.isNaN(d.getTime())){
+  if(
+    Number.isNaN(
+      d.getTime()
+    )
+  ){
+
     return date;
+
   }
 
   return d.toLocaleDateString(
@@ -3253,12 +4790,29 @@ function formatDate(date){
 
 function escapeHtml(value){
 
-  return String(value ?? "")
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
+  return String(
+    value ?? ""
+  )
+  .replace(
+    /&/g,
+    "&amp;"
+  )
+  .replace(
+    /</g,
+    "&lt;"
+  )
+  .replace(
+    />/g,
+    "&gt;"
+  )
+  .replace(
+    /"/g,
+    "&quot;"
+  )
+  .replace(
+    /'/g,
+    "&#039;"
+  );
 }
 
 
@@ -3269,20 +4823,17 @@ function escapeHtml(value){
 function renderAll(){
 
   renderHome();
+
   renderJournal();
+
   renderTransactions();
+
+  renderRemaining();
+
   renderCalendar();
+
   renderStats();
 
-  const remaining =
-    document.getElementById(
-      "remainingValue"
-    );
-
-  if(remaining){
-    remaining.textContent =
-      money(currentBalance());
-  }
 }
 
 
@@ -3290,13 +4841,24 @@ function renderAll(){
    START
 ========================= */
 
-renderRemaining();
 renderAll();
+
 
 window.addEventListener(
   "resize",
   drawBalanceChart
 );
+
+
+/* =========================
+   BACKWARD COMPATIBILITY
+========================= */
+
+/*
+  Если в старых данных случайно
+  остались сделки WAIT со старым
+  форматом, pnlOf() их обработает.
+*/
 
 </script>
 
