@@ -94,11 +94,11 @@ body::before{content:"";position:fixed;inset:0;z-index:-3;background:#03070d url
 <div class="news-head"><div><div class="section-title" style="margin-top:0">📰 Экономический календарь</div><div class="muted">Важные экономические события для Forex</div></div></div>
 <div class="news-high-box"><div class="news-high-title">🔴 ВАЖНЫЕ НОВОСТИ</div><div style="margin-top:7px">Показываются события высокой важности: <b>NFP / Non-Farm Payrolls</b>, CPI, GDP, решения центральных банков, безработица и другие важные релизы.</div></div>
 <div class="news-important"><div class="news-important-title">⚡ Что отслеживать</div><div class="news-important-list">
-<div class="news-important-item" onclick="openNfp()"><b>🇺🇸 NFP / Non-Farm Payrolls</b><span>USD · рынок труда США · нажми, чтобы открыть календарь</span></div>
-<div class="news-important-item" onclick="openNewsFilter('CPI')"><b>🇺🇸 CPI / Core CPI</b><span>USD · инфляция США</span></div>
-<div class="news-important-item" onclick="openNewsFilter('Central Banks')"><b>🏦 Решения по процентной ставке</b><span>Fed · ECB · BoE · BoJ · RBA · BoC · RBNZ · SNB</span></div>
-<div class="news-important-item" onclick="openNewsFilter('GDP')"><b>📊 GDP</b><span>Важные данные экономического роста</span></div>
-<div class="news-important-item" onclick="openNewsFilter('Unemployment')"><b>👷 Unemployment</b><span>Данные по безработице</span></div>
+<div class="news-important-item" onclick="openNewsPage('nfp')"><b>🇺🇸 NFP / Non-Farm Payrolls</b><span>USD · рынок труда США · открыть страницу</span></div>
+<div class="news-important-item" onclick="openNewsPage('cpi')"><b>🇺🇸 CPI / Core CPI</b><span>USD · инфляция США · открыть страницу</span></div>
+<div class="news-important-item" onclick="openNewsPage('rates')"><b>🏦 Решения по процентной ставке</b><span>Fed · ECB · BoE · BoJ · RBA · BoC · RBNZ · SNB · открыть страницу</span></div>
+<div class="news-important-item" onclick="openNewsPage('gdp')"><b>📊 GDP</b><span>Важные данные экономического роста · открыть страницу</span></div>
+<div class="news-important-item" onclick="openNewsPage('unemployment')"><b>👷 Unemployment</b><span>Данные по безработице · открыть страницу</span></div>
 </div></div>
 <div class="news-widget" id="newsWidget"><iframe id="investingFrame" src="https://sslecal2.investing.com/?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&importance=3&features=datepicker,timezone,timeselector,filters&countries=5,72,4,35,25,6,43,12&calType=week&timeZone=15&lang=1" height="620" frameborder="0" allowtransparency="true" marginwidth="0" marginheight="0"></iframe></div>
 <div class="news-source">Реальный экономический календарь предоставляется <a href="https://www.investing.com/economic-calendar" target="_blank" rel="noopener">Investing.com</a>.<br><br>В календаре включена высокая важность событий. 3 звезды у Investing.com соответствуют высокой ожидаемой волатильности. Важные события включают NFP, CPI, решения по ставкам, GDP и безработицу.</div>
@@ -636,15 +636,17 @@ function clearJournal(){
   trades=[];transactions=[];save();closeModal();render();show("home");
 }
 
-function openNfp(){
-  show("news");
-  const widget=document.getElementById("newsWidget");
-  setTimeout(()=>{if(widget){widget.scrollIntoView({behavior:"smooth",block:"start"});widget.style.outline="2px solid #ff365f";setTimeout(()=>widget.style.outline="none",1800)}},80);
-}
-function openNewsFilter(name){
-  show("news");
-  const widget=document.getElementById("newsWidget");
-  setTimeout(()=>{if(widget){widget.scrollIntoView({behavior:"smooth",block:"start"});widget.style.outline="2px solid #75e0a1";setTimeout(()=>widget.style.outline="none",1800)}},80);
+const NEWS_URLS={
+  nfp:"https://www.investing.com/economic-calendar/nonfarm-payrolls-227",
+  cpi:"https://www.investing.com/economic-calendar/cpi-69",
+  rates:"https://www.investing.com/economic-calendar/interest-rate-decision-168",
+  gdp:"https://www.investing.com/economic-calendar/gdp-375",
+  unemployment:"https://www.investing.com/economic-calendar/unemployment-rate-300",
+  calendar:"https://www.investing.com/economic-calendar/"
+};
+function openNewsPage(key){
+  const url=NEWS_URLS[key]||NEWS_URLS.calendar;
+  window.open(url,"_blank","noopener,noreferrer");
 }
 
 /* Close dropdown on outside click */
